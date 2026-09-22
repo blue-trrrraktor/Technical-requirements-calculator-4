@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Калькулятор технических требований СУНТД</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 24px 20px;
+            color: #1e293b;
+            position: relative;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+            color: #0f3b5c;
+        }
+        .sub {
+            color: #2c5a7a;
+            margin-bottom: 2rem;
+            border-left: 4px solid #2c7da0;
+            padding-left: 1rem;
+            font-weight: 400;
+        }
+        .admin-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ffffffcc;
+            border: 1px solid #94a3b8;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1e293b;
+            cursor: pointer;
+            transition: 0.2s;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+        .admin-btn:hover {
+            background: #e2e8f0;
+            border-color: #2c7da0;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.6rem;
+        }
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+        .input-group {
+            flex: 1;
+            min-width: 220px;
+        }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.4rem;
+            color: #0c4e6e;
+        }
+        select, input, .checkbox-group {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border-radius: 14px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.95rem;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+        .checkbox-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        .subsystems-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            background: #f9f9ff;
+            padding: 1rem;
+            border-radius: 20px;
+            border: 1px solid #e0e7ff;
+        }
+        .subsystem-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        .subsystem-item input {
+            width: auto;
+            margin-right: 4px;
+        }
+        button {
+            background: #2c7da0;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            margin-top: 0.5rem;
+        }
+        button:hover {
+            background: #1f5e7a;
+            transform: translateY(-1px);
+        }
+        .result-section {
+            background: #fefce8;
+            border-left: 6px solid #eab308;
+        }
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .result-table th, .result-table td {
+            text-align: left;
+            padding: 12px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: top;
+        }
+        .result-table th {
+            background: #f1f5f9;
+            font-weight: 700;
+            width: 30%;
+        }
+        .warning-list {
+            margin: 1rem 0 0 0;
+            padding-left: 1.2rem;
+        }
+        .warning-list li {
+            margin: 0.5rem 0;
+            color: #9b2c1d;
+        }
+        .warning-list li.critical {
+            color: #991b1b;
+            font-weight: bold;
+            background: #fecaca;
+            padding: 0.3rem 0.6rem;
+            border-radius: 12px;
+            list-style: none;
+        }
+        .two-cols {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .col {
+            flex: 1;
+            min-width: 280px;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 0.8rem;
+            border-radius: 16px;
+            margin-top: 1rem;
+        }
+        .client-os-section {
+            margin-bottom: 1rem;
+            border-radius: 16px;
+            background: #ffffffcc;
+            padding: 0.5rem 0;
+            overflow-x: auto;
+        }
+        .subsystems-details {
+            margin-top: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            background: #ffffff;
+            overflow: hidden;
+        }
+        .subsystems-details-header {
+            background: #f1f5f9;
+            padding: 0.8rem 1.2rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        .subsystems-details-header:hover {
+            background: #e2e8f0;
+        }
+        .subsystems-details-content {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: none;
+        }
+        .subsystems-details-content.show {
+            display: block;
+        }
+        .subsystem-detail-group {
+            margin-bottom: 1.2rem;
+        }
+        .subsystem-detail-group strong {
+            display: block;
+            margin-bottom: 0.3rem;
+            color: #0c4e6e;
+        }
+        .subsystem-detail-group ul {
+            margin: 0.2rem 0 0 1.2rem;
+            padding-left: 0;
+        }
+        .subsystem-detail-group li {
+            margin: 0.2rem 0;
+            color: #475569;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #5b6e8c;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 1100px;
+            max-height: 90vh;
+            border-radius: 28px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin: 0;
+            padding: 0;
+            line-height: 1;
+        }
+        .modal-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 1.5rem;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .modal-tab {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 20px;
+            margin: 0;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+        .modal-tab.active {
+            background: white;
+            color: #0f3b5c;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .admin-form-group {
+            margin-bottom: 1.2rem;
+        }
+        .admin-form-group label {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+        .admin-form-group input, .admin-form-group textarea, .admin-form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.9rem;
+        }
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .admin-table th, .admin-table td {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem;
+            text-align: left;
+            vertical-align: top;
+        }
+        .admin-table th {
+            background: #f1f5f9;
+        }
+        .btn-small {
+            background: #e2e8f0;
+            color: #1e293b;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin: 0;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-danger {
+            background: #fecaca;
+            color: #991b1b;
+        }
+        .helper-text {
+            display: block;
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-top: 0.2rem;
+        }
+        .config-block {
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border-radius: 16px;
+            background: #f8fafc;
+        }
+        .config-block:nth-child(even) {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+        .static-highlight {
+            background: #fef9c3;
+            border-left: 6px solid #eab308;
+            padding: 0.8rem;
+            margin-bottom: 1.5rem;
+            border-radius: 16px;
+        }
+        .readonly-field {
+            background-color: #f1f5f9;
+            cursor: default;
+        }
+        .servers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .server-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 1rem;
+            transition: 0.2s;
+        }
+        .server-item .server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .server-item .server-header strong {
+            font-size: 1rem;
+            flex: 1;
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .server-item .server-header strong input {
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            background: transparent;
+            width: auto;
+            min-width: 100px;
+            padding: 0.2rem 0.4rem;
+            border-bottom: 1px dashed #94a3b8;
+        }
+        .server-item .server-header strong input:focus {
+            outline: none;
+            border-bottom-color: #2c7da0;
+        }
+        .server-item .server-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .server-item .server-details label {
+            font-weight: normal;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .server-item .server-details input, .server-item .server-details select {
+            width: 70px;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.8rem;
+        }
+        .server-item .server-details select {
+            width: auto;
+            min-width: 100px;
+        }
+        .server-item .btn-small {
+            margin-left: 0.5rem;
+        }
+        .subsystem-item select {
+            width: auto;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        .server-results {
+            margin-top: 1.5rem;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 1rem;
+            position: relative;
+        }
+        .server-results .server-header-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            background: #f1f5f9;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            margin: 1rem 0 0.5rem 0;
+        }
+        .server-results .server-header-result h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .server-results .server-header-result .toggle-icon {
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+            margin-left: 0.5rem;
+        }
+        .server-results .server-header-result .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        .server-results .server-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            max-height: 2000px;
+        }
+        .server-results .server-content.hidden {
+            max-height: 0;
+            padding: 0;
+            margin: 0;
+        }
+        .server-results .result-table {
+            margin: 0.5rem 0 1.5rem;
+        }
+        .server-results .server-status {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .server-status.ok {
+            background: #bbf7d0;
+            color: #166534;
+        }
+        .server-status.fail {
+            background: #fecaca;
+            color: #991b1b;
+        }
+        .critical-list {
+            margin-top: 0.5rem;
+            padding-left: 1.2rem;
+        }
+        .critical-list li {
+            color: #991b1b;
+            margin: 0.2rem 0;
+        }
+        .server-extra-warnings {
+            margin-top: 0.5rem;
+            padding-left: 1.2rem;
+        }
+        .server-extra-warnings li {
+            color: #92400e;
+            margin: 0.2rem 0;
+        }
+        .global-status {
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 0.5rem 1rem;
+            border-radius: 16px;
+            margin-bottom: 0.5rem;
+        }
+        .global-status.ok {
+            background: #bbf7d0;
+            color: #166534;
+        }
+        .global-status.fail {
+            background: #fecaca;
+            color: #991b1b;
+        }
+        .client-results-block {
+            margin-top: 1.5rem;
+            border-top: 2px solid #e2e8f0;
+            padding-top: 1rem;
+        }
+        .client-results-block .client-header-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            background: #f1f5f9;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            margin: 1rem 0 0.5rem 0;
+        }
+        .client-results-block .client-header-result h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        .client-results-block .client-header-result .toggle-icon {
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+            margin-left: 0.5rem;
+        }
+        .client-results-block .client-header-result .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        .client-results-block .client-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            max-height: 2000px;
+        }
+        .client-results-block .client-content.hidden {
+            max-height: 0;
+            padding: 0;
+            margin: 0;
+        }
+        @media (max-width: 780px) {
+            .card {
+                padding: 1.2rem;
+            }
+            .admin-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+            .col {
+                min-width: 100%;
+            }
+            .client-os-section table {
+                width: 100%;
+                display: block;
+                overflow-x: auto;
+            }
+            .col table {
+                width: 100%;
+            }
+            .col td {
+                word-break: break-word;
+            }
+            .client-os-section table {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📐 Калькулятор технических требований</h1>
+    <div class="sub">СУ НТД · Учет нагрузки по документам и пользователям</div>
+
+    <div class="card">
+        <h2>⚙️ Конфигурация системы</h2>
+        <div class="flex-row">
+            <div class="input-group"><label>📦 Версия Платформы</label><select id="platformVersion"></select></div>
+            <div class="input-group"><label>🖥️ Режим развертывания</label><select id="deployMode"><option value="full">Полный контур СУ НТД (типовой)</option><option value="reference">Только Справочная система (облегченный)</option></select></div>
+            <div class="input-group"><label>🧑‍ Количество одновременных пользователей</label><input type="number" id="userCount" value="150" step="1" min="1"></div>
+            <div class="input-group"><label>📄 Объем документов в БД (млн)</label><input type="number" id="docCount" value="2.5" step="0.5" min="0"></div>
+        </div>
+        <div class="flex-row" style="margin-top:1rem">
+            <div class="input-group"><label>🖥️ Сервер Платформы</label><select id="platformServerSelect"><option value="">— не выбрано —</option></select></div>
+            <div class="input-group"><label>🗄️ Сервер Базы данных</label><select id="dbServerSelect"><option value="">— не выбрано —</option></select></div>
+        </div>
+    </div>
+
+    <div class="card" id="serversCard">
+        <h2>🖧 Серверы</h2>
+        <div id="serversContainer">
+            <div class="servers-list" id="serversList"></div>
+            <button id="addServerBtn" class="btn-small" style="background:#2c7da0; color:white; margin-top:0.5rem;">+ Добавить сервер</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>🔌 Подключаемые подсистемы и модули</h2>
+        <div class="subsystems-list" id="subsystemsContainer"></div>
+        <div style="margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button id="autoAssignBtn" class="btn-small" style="background:#2c7da0; color:white;">Автораспределение</button>
+            <span class="helper-text" style="display:inline-block; margin-left:0.5rem;">Распределяет выбранные подсистемы по серверам (без учёта характеристик серверов). Для точной настройки распределите вручную.</span>
+        </div>
+        <div class="note">💡 <strong>Правило:</strong> если подсистема требует больше ресурсов, чем Платформа — итоговые требования повышаются.<br>📋 <strong>Детали:</strong> специфические требования выбранных подсистем отображаются в отдельном сворачиваемом блоке после расчета.</div>
+    </div>
+
+    <div style="text-align:right"><button id="calcBtn">🧮 Рассчитать требования →</button></div>
+
+    <div class="card result-section" id="resultPanel" style="display:none">
+        <h2>📋 Результат расчета</h2>
+        <div id="serverResultsContainer"></div>
+        <div id="clientResultsBlock" class="client-results-block"></div>
+        <div id="warningsArea" style="margin-top:1.5rem; background:#fff7e6; padding:1rem; border-radius:20px;"></div>
+        <div id="subsystemsDetailsBlock" class="subsystems-details" style="display:none"><div class="subsystems-details-header" id="subsystemsDetailsHeader"><span>📌 Дополнительные требования выбранных подсистем</span><span>▼</span></div><div class="subsystems-details-content" id="subsystemsDetailsContent"></div></div>
+        <div id="scalingNote" class="note"></div>
+        <button id="exportBtn" style="background:#4b5563; margin-top:1rem;">📎 Копировать сводку</button>
+    </div>
+    <footer>⚡ Калькулятор основан на утвержденных технических требованиях к Платформе, подсистемам и правилам масштабирования.<br>При виртуализации строго соблюдать настройки энергопотребления (BIOS/хоста/гостя) и размещать тома БД на локальном виртуальном диске (не по сети).</footer>
+</div>
+
+<button class="admin-btn" id="adminBtn">⚙️ Настройка ограничений нагрузки</button>
+
+<div id="adminModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Административная панель</h3><button class="modal-close" id="closeModalBtn">&times;</button></div><div class="modal-tabs" id="modalTabs"><button class="modal-tab active" data-tab="platform">Версии Платформы</button><button class="modal-tab" data-tab="client">Клиентские требования</button><button class="modal-tab" data-tab="subsystems">Подсистемы</button><button class="modal-tab" data-tab="scaling">Масштабирование и запасы</button></div><div class="modal-body" id="modalBody"></div><div class="modal-header" style="border-top:1px solid #e2e8f0; justify-content:flex-end; gap:0.5rem;"><button id="exportConfigBtn" class="btn-small">📤 Экспорт JSON</button><button id="importConfigBtn" class="btn-small">📥 Импорт JSON</button><button id="resetConfigBtn" class="btn-small btn-danger">Вернуть исходные значения</button><button id="saveConfigBtn" class="btn-small" style="background:#2c7da0; color:white;">💾 Сохранить</button></div></div></div>
+
+<script>
+    // ---------- КОНФИГУРАЦИЯ ПО УМОЛЧАНИЮ ----------
+    const DEFAULT_CONFIG = {
+        platformReqs: {
+            "6.4.5": { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_free_gb_base:50, network_gbit:1, bios_power_setting:true, os_windows:["Server 2012","Server 2016","Server 2019","Server 2022","Server 2025"], os_linux_compatible:["Astra Linux Special Edition 1.6+","Astra Linux Common Edition 2.12+","Альт СП Сервер 10+","Альт Сервер 10+","РЕД ОС 7.3+","ОС Атлант сборка Alcyone","AlterOS 7.5+","ядро 3.0+ (прочие дистрибутивы)"], power_plan_recommended:"Высокая производительность" },
+            "6.4.6": { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_free_gb_base:50, network_gbit:1, bios_power_setting:true, os_windows:["Server 2012","Server 2016","Server 2019","Server 2022","Server 2025"], os_linux_compatible:["Astra Linux Special Edition 1.6+","Astra Linux Common Edition 2.12+","Альт СП Сервер 10+","Альт Сервер 10+","РЕД ОС 7.3+","ОС Атлант сборка Alcyone","AlterOS 7.5+","ядро 3.0+ (прочие дистрибутивы)"], power_plan_recommended:"Высокая производительность" }
+        },
+        clientReqs: {
+            windows: { cpu_freq_ghz:2.0, ram_gb:4, network_mbps:100, os:"Windows 7,8,8.1,10,11 и выше (только 64-bit)", browsers:"Google Chrome, Mozilla Firefox, Microsoft Edge, Opera, Яндекс.Браузер (последние стабильные версии)" },
+            linux: { cpu_freq_ghz:2.0, ram_gb:4, network_mbps:100, os:"Astra Linux Desktop 1.7+, Alt Linux Desktop 10.4+, РЕД ОС 7.3+, Ubuntu Desktop 22.04+", browsers:"Google Chrome, Mozilla Firefox, Microsoft Edge, Opera, Яндекс.Браузер (последние стабильные версии)" }
+        },
+        subsystems: [
+            { id:"bank_docs", name:"Техэксперт: Банк документов", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Большие установки: Банк документов с операторскими местами — отдельный сервер, данные синхронизируются с СХД.","Способы авторизации: по базе пользователей, по домену (Kerberos). Для Linux только база и Kerberos.","АРМ администратора фондов работает только под Windows."] },
+            { id:"arm_operator", name:"Техэксперт: АРМ оператора фондов", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Рекомендуется отдельный сервер Банка документов, единый для всех установок ПВФ.","Работа в нескольких кодвебах не поддерживается.","Клиентское приложение «Техэксперт-клиент» не используется — только web."] },
+            { id:"control_nd", name:"Техэксперт: Контроль оборота НД", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Подсистемы на нескольких кодвебах можно подключить к единой СУБД PostgreSQL.","Рекомендуемое разрешение экрана клиента: не менее 1024x768."] },
+            { id:"digital_cabinets", name:"Техэксперт: Цифровые кабинеты", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Одинаковые файлы настроек можно использовать на нескольких кодвебах.","Клиент — только web, разрешение экрана ≥1024x768."] },
+            { id:"constructor_nd", name:"Техэксперт: Конструктор нормативных документов", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требуется СУБД MongoDB версии 4.0 и выше.","На рабочих местах: Microsoft Office 2010 SP2+ (или Мой офис), .NET Framework 4.5.2, Visual Studio Tools for Office Runtime."] },
+            { id:"discussion_nd", name:"Техэксперт: Обсуждение нормативных документов", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требуется PostgreSQL 9.1+, PHP ≤5.6, Apache 2.2+.","С нескольких кодвебов подключение к одной подсистеме по единой ссылке."] },
+            { id:"monitoring_te", name:"Техэксперт: Мониторинг системы", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Использует СУБД Sqlite (встроенная) и Postgres (требуется дополнительная установка)."] },
+            { id:"planning_nd", name:"Техэксперт: Планирование разработки НД", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требует PostgreSQL 10, SQLite 3.38.0.","На клиенте: Microsoft Office 2010+, Adobe Reader 10+, .NET Framework 4.6.1."] },
+            { id:"kassist3", name:"Интеграционный модуль 'кАссист' (3-е поколение)", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требуется Платформа 6.4.5 или выше.","Авторизация: ключ доступа или по логину Windows.","Для сервиса Пакетная обработка файлов: .NET Framework 4.7, Microsoft Office Word/Excel 2007+.","Для сервиса Информер: .NET Framework 4.5.","Клиент поддерживает Windows, браузеры и 'Кодекс-клиент'."] },
+            { id:"kassist4", name:"Интеграционный модуль 'кАссист' (4-е поколение)", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требуется Платформа 6.4.5+.","Клиент только Linux (Astra, Alt, РЕД ОС, Ubuntu).","Интеграция с LibreOffice x64 5.1+, Р7-Офис 2024.1.2.401+ (только Редактор текста).","Отсутствует: авторазвертывание, сервис 'Информер', сервис 'кАссист:Пакетный'."] },
+            { id:"nsi", name:"Техэксперт: Подсистема управления нормативно-справочной информацией", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Клиент только Linux (Astra, Alt, РЕД ОС, Ubuntu).","Работа только через web-браузер."] },
+            { id:"soglasovanie", name:"Техэксперт: Согласование НД", requirements:{server:{ram_gb:32,cpu_cores:8,cpu_freq_ghz:2.7}}, extraWarnings:["Сервер приложений: 8 ГБ ОЗУ, СУБД: 32 ГБ ОЗУ (итоговое требование 32 ГБ, 8 ядер).","Сетевые требования: для сервера приложений 100 ГБ (диск) / для СУБД 500 ГБ RAID1 — требуется значительное дисковое пространство.","Работает только на Windows Server 2012+ (серверная часть).","Для подписания ЭП: КриптоПро CSP v4+, плагин КриптоПро ЭЦП Browser plug-in.","Веб-сервер IIS обязателен для Windows.","Клиент поддерживает Windows, Linux, браузеры на Chromium."] }
+        ],
+        scaling: {
+            baseDocsMillion:3, ramPerExtra3MillionGB:4, referenceModeFactor:{ram_gb:8,cpu_cores:2,cpu_freq_ghz:2.0},
+            subsystemCountThreshold:5, subsystemRamMultiplier:1.15, subsystemDiskMultiplier:1.10,
+            userTiers:[{min:301,max:500,ramMultiplier:1.2,extraCores:2,targetFreq:null},{min:501,max:1000,ramMultiplier:1.5,extraCores:4,targetFreq:3.0},{min:1001,max:null,ramMultiplier:2.0,extraCores:8,targetFreq:3.5}],
+            diskFormula:{ranges:[{max:3,coeff:1.5,extra:0},{max:10,coeff:1.2,extra:0},{max:null,coeff:1.0,extra:20}]},
+            diskRecommendedPadding:30
+        },
+        servers: [],
+        subsystemAssignments: {},
+        selectedPlatformServer: "",
+        selectedDbServer: "",
+        resultCollapsed: {},
+        clientCollapsed: false
+    };
+
+    let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+    let selectedSubsystems = new Set();
+
+    // ---------- ФУНКЦИИ РАБОТЫ С СЕРВЕРАМИ ----------
+    function getServers() { return config.servers || []; }
+    function getServerNames() { return getServers().map(s => s.name); }
+
+    function generateServerName() {
+        let num = 1;
+        const names = getServerNames();
+        while (names.includes(`Сервер ${num}`)) num++;
+        return `Сервер ${num}`;
+    }
+
+    function addServer() {
+        const name = generateServerName();
+        config.servers.push({
+            name: name,
+            type: 'physical',
+            os: 'win2019',
+            cpu_cores: 4,
+            cpu_freq_ghz: 2.7,
+            ram_gb: 16,
+            disk_gb: 50,
+            network_gbit: 1
+        });
+        if (!config.selectedPlatformServer) config.selectedPlatformServer = name;
+        if (!config.selectedDbServer) config.selectedDbServer = name;
+        renderAll();
+    }
+
+    function removeServer(name) {
+        config.servers = config.servers.filter(s => s.name !== name);
+        if (config.selectedPlatformServer === name) config.selectedPlatformServer = "";
+        if (config.selectedDbServer === name) config.selectedDbServer = "";
+        for (let subId in config.subsystemAssignments) {
+            if (config.subsystemAssignments[subId] === name) delete config.subsystemAssignments[subId];
+        }
+        renderAll();
+    }
+
+    function updateServer(name, newData) {
+        const server = config.servers.find(s => s.name === name);
+        if (server) {
+            if (newData.name && newData.name !== name) {
+                for (let subId in config.subsystemAssignments) {
+                    if (config.subsystemAssignments[subId] === name) {
+                        config.subsystemAssignments[subId] = newData.name;
+                    }
+                }
+                if (config.selectedPlatformServer === name) config.selectedPlatformServer = newData.name;
+                if (config.selectedDbServer === name) config.selectedDbServer = newData.name;
+                if (config.resultCollapsed[name] !== undefined) {
+                    config.resultCollapsed[newData.name] = config.resultCollapsed[name];
+                    delete config.resultCollapsed[name];
+                }
+            }
+            Object.assign(server, newData);
+            renderAll();
+        }
+    }
+
+    // ---------- ОТОБРАЖЕНИЕ ----------
+    function renderAll() {
+        renderServers();
+        renderSubsystems();
+        renderServerSelects();
+    }
+
+    function renderServers() {
+        const container = document.getElementById('serversList');
+        if (!container) return;
+        const servers = getServers();
+        if (servers.length === 0) {
+            container.innerHTML = '<div style="color:#64748b; font-size:0.9rem;">Серверы не добавлены. Добавьте сервер для распределения подсистем.</div>';
+            return;
+        }
+        let html = '';
+        const osOptions = [
+            {value:'win2012', label:'Windows Server 2012'},
+            {value:'win2016', label:'Windows Server 2016'},
+            {value:'win2019', label:'Windows Server 2019'},
+            {value:'win2022', label:'Windows Server 2022'},
+            {value:'win2025', label:'Windows Server 2025'},
+            {value:'linux_astra', label:'Astra Linux (Special/Common Edition)'},
+            {value:'linux_alt', label:'Альт Сервер / Альт СП Сервер'},
+            {value:'linux_red', label:'РЕД ОС'},
+            {value:'linux_atlant', label:'ОС Атлант (Alcyone)'},
+            {value:'linux_other', label:'Linux (ядро 3.0+) — прочие'},
+            {value:'other', label:'Другая (не рекомендуется)'}
+        ];
+        servers.forEach((s) => {
+            const osSelected = s.os || 'win2019';
+            html += `<div class="server-item" data-server="${s.name}">
+                        <div class="server-header">
+                            <strong>
+                                <input type="text" class="server-name-input" value="${s.name}" style="font-size:1rem; font-weight:bold; border:none; background:transparent; width:auto; min-width:100px; padding:0.2rem 0.4rem; border-bottom:1px dashed #94a3b8;">
+                            </strong>
+                            <div>
+                                <select class="server-type-select" style="width:auto; padding:0.2rem 0.4rem; border-radius:8px; border:1px solid #cbd5e1;">
+                                    <option value="physical" ${s.type==='physical'?'selected':''}>Физический</option>
+                                    <option value="virtual" ${s.type==='virtual'?'selected':''}>Виртуальный</option>
+                                </select>
+                                <button class="btn-small btn-danger remove-server" data-name="${s.name}">Удалить</button>
+                            </div>
+                        </div>
+                        <div class="server-details">
+                            <label>ОС: <select class="server-os-select" style="width:auto; min-width:130px;">
+                                ${osOptions.map(o => `<option value="${o.value}" ${o.value===osSelected?'selected':''}>${o.label}</option>`).join('')}
+                            </select></label>
+                            <label>CPU ядер: <input type="number" step="1" class="server-cpu-cores" value="${s.cpu_cores}" style="width:60px;"></label>
+                            <label>Частота (ГГц): <input type="number" step="0.1" class="server-cpu-freq" value="${s.cpu_freq_ghz}" style="width:60px;"></label>
+                            <label>ОЗУ (ГБ): <input type="number" step="1" class="server-ram" value="${s.ram_gb}" style="width:60px;"></label>
+                            <label>Диск (ГБ): <input type="number" step="1" class="server-disk" value="${s.disk_gb}" style="width:60px;"></label>
+                            <label>Сеть (Гбит/с): <input type="number" step="0.1" class="server-network" value="${s.network_gbit}" style="width:60px;"></label>
+                            <button class="btn-small update-server" data-name="${s.name}">Сохранить настройки</button>
+                        </div>
+                    </div>`;
+        });
+        container.innerHTML = html;
+
+        container.querySelectorAll('.remove-server').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const name = btn.dataset.name;
+                if (confirm(`Удалить сервер "${name}"?`)) removeServer(name);
+            });
+        });
+        container.querySelectorAll('.update-server').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const name = btn.dataset.name;
+                const item = btn.closest('.server-item');
+                const newName = item.querySelector('.server-name-input').value.trim();
+                if (!newName) { alert('Название сервера не может быть пустым.'); return; }
+                if (newName !== name && getServers().some(s => s.name === newName)) {
+                    alert(`Сервер с именем "${newName}" уже существует.`);
+                    return;
+                }
+                const details = item.querySelector('.server-details');
+                if (!details) return;
+                const newData = {
+                    name: newName,
+                    type: item.querySelector('.server-type-select').value,
+                    os: details.querySelector('.server-os-select').value,
+                    cpu_cores: parseInt(details.querySelector('.server-cpu-cores').value) || 0,
+                    cpu_freq_ghz: parseFloat(details.querySelector('.server-cpu-freq').value) || 0,
+                    ram_gb: parseInt(details.querySelector('.server-ram').value) || 0,
+                    disk_gb: parseInt(details.querySelector('.server-disk').value) || 0,
+                    network_gbit: parseFloat(details.querySelector('.server-network').value) || 0
+                };
+                updateServer(name, newData);
+            });
+        });
+        container.querySelectorAll('.server-name-input').forEach(inp => {
+            inp.addEventListener('change', function() {
+                const btn = this.closest('.server-item').querySelector('.update-server');
+                if (btn) btn.click();
+            });
+        });
+    }
+
+    function renderServerSelects() {
+        const platformSelect = document.getElementById('platformServerSelect');
+        const dbSelect = document.getElementById('dbServerSelect');
+        const serverNames = getServerNames();
+        const optionsHtml = serverNames.map(name => `<option value="${name}">${name}</option>`).join('');
+        platformSelect.innerHTML = `<option value="">— не выбрано —</option>` + optionsHtml;
+        platformSelect.value = config.selectedPlatformServer || '';
+        dbSelect.innerHTML = `<option value="">— не выбрано —</option>` + optionsHtml;
+        dbSelect.value = config.selectedDbServer || '';
+        platformSelect.onchange = function() { config.selectedPlatformServer = this.value; };
+        dbSelect.onchange = function() { config.selectedDbServer = this.value; };
+    }
+
+    function renderSubsystems() {
+        const container = document.getElementById('subsystemsContainer');
+        if (!container) return;
+        container.innerHTML = '';
+        const currentVersion = document.getElementById('platformVersion').value;
+        const base = config.platformReqs[currentVersion];
+        if (!base) return;
+        const serverNames = getServerNames();
+        config.subsystems.forEach(sub => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'subsystem-item';
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.id = `sub_${sub.id}`;
+            cb.value = sub.id;
+            cb.checked = selectedSubsystems.has(sub.id);
+            cb.addEventListener('change', () => {
+                if (cb.checked) {
+                    selectedSubsystems.add(sub.id);
+                    if (serverNames.length > 0 && !config.subsystemAssignments[sub.id]) {
+                        config.subsystemAssignments[sub.id] = serverNames[0];
+                    }
+                } else {
+                    selectedSubsystems.delete(sub.id);
+                    delete config.subsystemAssignments[sub.id];
+                }
+                renderSubsystems();
+                calculateWithoutScroll();
+            });
+            const label = document.createElement('label');
+            label.htmlFor = `sub_${sub.id}`;
+            const subReqs = sub.requirements.server;
+            let diffParts = [];
+            if (subReqs.ram_gb !== undefined && Number(subReqs.ram_gb) > base.ram_gb)
+                diffParts.push(`${subReqs.ram_gb} ГБ ОЗУ`);
+            if (subReqs.cpu_cores !== undefined && Number(subReqs.cpu_cores) > base.cpu_cores)
+                diffParts.push(`${subReqs.cpu_cores} ядра (CPU)`);
+            if (subReqs.cpu_freq_ghz !== undefined && Number(subReqs.cpu_freq_ghz) > base.cpu_freq_ghz)
+                diffParts.push(`${subReqs.cpu_freq_ghz} ГГц`);
+            let diffText = diffParts.length ? diffParts.join(', ') : "базовые требования (не повышает)";
+            label.innerHTML = `${sub.name} <span style="font-size:0.7rem; color:#4b5563;">(требует: ${diffText})</span>`;
+            wrapper.appendChild(cb);
+            wrapper.appendChild(label);
+
+            if (serverNames.length > 0) {
+                const select = document.createElement('select');
+                select.className = 'server-select';
+                select.dataset.subId = sub.id;
+                const currentAssignment = config.subsystemAssignments[sub.id] || '';
+                const noneOption = document.createElement('option');
+                noneOption.value = '';
+                noneOption.textContent = '— не выбрано —';
+                select.appendChild(noneOption);
+                serverNames.forEach(sname => {
+                    const opt = document.createElement('option');
+                    opt.value = sname;
+                    opt.textContent = sname;
+                    if (sname === currentAssignment) opt.selected = true;
+                    select.appendChild(opt);
+                });
+                select.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    if (val) config.subsystemAssignments[sub.id] = val;
+                    else delete config.subsystemAssignments[sub.id];
+                });
+                wrapper.appendChild(select);
+            }
+            container.appendChild(wrapper);
+        });
+    }
+
+    document.getElementById('addServerBtn').addEventListener('click', addServer);
+    document.getElementById('autoAssignBtn').addEventListener('click', autoAssignSubsystems);
+
+    function autoAssignSubsystems() {
+        const serverNames = getServerNames();
+        if (serverNames.length === 0) { alert('Сначала добавьте хотя бы один сервер.'); return; }
+        let primary = serverNames.find(name => name.toLowerCase().includes('платформа'));
+        if (!primary) primary = serverNames[0];
+        for (let sub of config.subsystems) {
+            if (selectedSubsystems.has(sub.id)) {
+                config.subsystemAssignments[sub.id] = primary;
+            } else {
+                delete config.subsystemAssignments[sub.id];
+            }
+        }
+        renderAll();
+        calculateWithoutScroll();
+    }
+
+    // ---------- ЗАГРУЗКА/СОХРАНЕНИЕ ----------
+    function deepMerge(base, overrides) {
+        if (overrides === undefined || overrides === null) return base;
+        if (base === undefined || base === null) return overrides;
+        if (typeof base !== 'object' || Array.isArray(base)) return overrides;
+        let result = JSON.parse(JSON.stringify(base));
+        for (let key in overrides) {
+            if (overrides.hasOwnProperty(key)) {
+                if (typeof overrides[key] === 'object' && overrides[key] !== null && !Array.isArray(overrides[key])) {
+                    result[key] = deepMerge(result[key], overrides[key]);
+                } else {
+                    result[key] = overrides[key];
+                }
+            }
+        }
+        return result;
+    }
+
+    function saveConfig() {
+        localStorage.setItem('suntd_calculator_config', JSON.stringify(config));
+        alert('Настройки сохранены. Страница будет перезагружена для применения.');
+        location.reload();
+    }
+
+    function loadConfig() {
+        const saved = localStorage.getItem('suntd_calculator_config');
+        if (saved) {
+            try { config = deepMerge(DEFAULT_CONFIG, JSON.parse(saved)); } catch(e) { console.warn(e); }
+        }
+        selectedSubsystems.clear();
+        for (let sub of config.subsystems) {
+            if (config.subsystemAssignments[sub.id] !== undefined) {
+                selectedSubsystems.add(sub.id);
+            }
+        }
+        applyConfigToUI();
+    }
+
+    function applyConfigToUI() {
+        const platformSelect = document.getElementById('platformVersion');
+        platformSelect.innerHTML = '';
+        const versions = Object.keys(config.platformReqs).sort();
+        for (let ver of versions) {
+            let option = document.createElement('option');
+            option.value = ver;
+            option.textContent = `Платформа ${ver}`;
+            platformSelect.appendChild(option);
+        }
+        renderAll();
+        document.getElementById('platformServerSelect').value = config.selectedPlatformServer || '';
+        document.getElementById('dbServerSelect').value = config.selectedDbServer || '';
+    }
+
+    // ---------- ОСНОВНЫЕ ФУНКЦИИ РАСЧЁТА ----------
+    function aggregateServerReqs(baseReqs, selectedSubsList) {
+        let result = { ...baseReqs };
+        for (let subId of selectedSubsList) {
+            const sub = config.subsystems.find(s => s.id === subId);
+            if (!sub || !sub.requirements.server) continue;
+            const sr = sub.requirements.server;
+            if (sr.ram_gb && sr.ram_gb > result.ram_gb) result.ram_gb = sr.ram_gb;
+            if (sr.cpu_cores && sr.cpu_cores > result.cpu_cores) result.cpu_cores = sr.cpu_cores;
+            if (sr.cpu_freq_ghz && sr.cpu_freq_ghz > result.cpu_freq_ghz) result.cpu_freq_ghz = sr.cpu_freq_ghz;
+        }
+        return result;
+    }
+
+    function calcDiskSpace(baseDiskGb, docsMillion) {
+        const ranges = config.scaling.diskFormula.ranges;
+        let additional = 0, prevMax = 0;
+        for (let r of ranges) {
+            if (r.max === null) {
+                if (docsMillion > prevMax) additional += (docsMillion - prevMax) * r.coeff + (r.extra || 0);
+                break;
+            } else if (docsMillion > prevMax) {
+                let part = Math.min(docsMillion, r.max) - prevMax;
+                additional += part * r.coeff;
+                prevMax = r.max;
+            } else break;
+        }
+        return Math.ceil(baseDiskGb + additional);
+    }
+
+    function checkOsCompatibilityForServer(server) {
+        const osVal = server.os || 'win2019';
+        const allowedWindows = ["win2012","win2016","win2019","win2022","win2025"];
+        const allowedLinux = ["linux_astra","linux_alt","linux_red","linux_atlant","linux_other"];
+        if (osVal === 'other') return { compatible: false, message: "Выбранная ОС не входит в официальный список поддерживаемых (Windows Server 2012/2016/2019/2022/2025 или Linux с ядром 3.0+ и совместимые дистрибутивы). Совместимость не гарантирована." };
+        if (allowedWindows.includes(osVal)) return { compatible: true, message: "" };
+        if (allowedLinux.includes(osVal)) return { compatible: true, message: "" };
+        return { compatible: false, message: "Выбранная ОС не соответствует требованиям. Для сервера необходима 64-разрядная ОС Windows Server (2012–2025) или Linux (ядро 3.0+ / Альт / Астра / РЕД / Атлант)." };
+    }
+
+    function checkServerResources(server, minReqs, finalRamMin, diskMin) {
+        let errors = [];
+        const reqCores = minReqs.cpu_cores || 0;
+        const reqFreq = minReqs.cpu_freq_ghz || 0;
+        const reqRam = finalRamMin || 0;
+        const reqDisk = diskMin || 0;
+        const reqNetwork = 1;
+
+        if (server.cpu_cores < reqCores) {
+            errors.push(`Недостаточно ядер CPU: требуется ${reqCores}, у сервера ${server.cpu_cores}`);
+        }
+        if (server.cpu_freq_ghz < reqFreq) {
+            errors.push(`Недостаточная частота CPU: требуется ${reqFreq} ГГц, у сервера ${server.cpu_freq_ghz} ГГц`);
+        }
+        if (server.ram_gb < reqRam) {
+            errors.push(`Недостаточно ОЗУ: требуется ${reqRam} ГБ, у сервера ${server.ram_gb} ГБ`);
+        }
+        if (server.disk_gb < reqDisk) {
+            errors.push(`Недостаточно дискового пространства: требуется ${reqDisk} ГБ, у сервера ${server.disk_gb} ГБ`);
+        }
+        if (server.network_gbit < reqNetwork) {
+            errors.push(`Недостаточная пропускная способность сети: требуется ${reqNetwork} Гбит/с, у сервера ${server.network_gbit} Гбит/с`);
+        }
+        return errors;
+    }
+
+    // ---------- ВЫПОЛНЕНИЕ РАСЧЁТА ----------
+    function performCalculation(doScroll = false) {
+        const platformVer = document.getElementById('platformVersion').value;
+        const deployMode = document.getElementById('deployMode').value;
+        let userCount = parseInt(document.getElementById('userCount').value,10) || 0;
+        let docsMillion = parseFloat(document.getElementById('docCount').value) || 0;
+
+        let baseServer = { ...config.platformReqs[platformVer] };
+        if (deployMode === 'reference') {
+            baseServer.ram_gb = config.scaling.referenceModeFactor.ram_gb;
+            baseServer.cpu_cores = config.scaling.referenceModeFactor.cpu_cores;
+            baseServer.cpu_freq_ghz = config.scaling.referenceModeFactor.cpu_freq_ghz;
+        }
+
+        const serverNames = getServerNames();
+        if (serverNames.length === 0) {
+            alert('Добавьте хотя бы один сервер для расчёта.');
+            return;
+        }
+
+        let extraRamByDocs = 0;
+        if (docsMillion > config.scaling.baseDocsMillion) {
+            let steps = Math.ceil((docsMillion - config.scaling.baseDocsMillion) / 3);
+            extraRamByDocs = steps * config.scaling.ramPerExtra3MillionGB;
+        }
+
+        let serversResults = [];
+        let allSelectedSubs = config.subsystems.filter(sub => selectedSubsystems.has(sub.id));
+
+        for (let sname of serverNames) {
+            const server = config.servers.find(s => s.name === sname);
+            if (!server) continue;
+            let assignedSubs = [];
+            for (let sub of config.subsystems) {
+                if (selectedSubsystems.has(sub.id) && config.subsystemAssignments[sub.id] === sname) {
+                    assignedSubs.push(sub);
+                }
+            }
+            let serverReqs = aggregateServerReqs(baseServer, assignedSubs.map(s => s.id));
+            let finalRamMin = serverReqs.ram_gb + extraRamByDocs;
+
+            let subsystemCount = assignedSubs.length;
+            let subRamMult = 1, subDiskMult = 1;
+            if (subsystemCount >= config.scaling.subsystemCountThreshold) {
+                subRamMult = config.scaling.subsystemRamMultiplier;
+                subDiskMult = config.scaling.subsystemDiskMultiplier;
+            }
+            finalRamMin = Math.ceil(finalRamMin * subRamMult);
+            let diskMin = Math.ceil(calcDiskSpace(baseServer.disk_free_gb_base, docsMillion) * subDiskMult);
+            const diskRecommended = diskMin + config.scaling.diskRecommendedPadding;
+
+            let userTier = null, ramUserMult = 1, extraCores = 0, targetFreq = null;
+            for (let tier of config.scaling.userTiers) {
+                if (userCount >= tier.min && (tier.max === null || userCount <= tier.max)) {
+                    userTier = tier;
+                    ramUserMult = tier.ramMultiplier;
+                    extraCores = tier.extraCores;
+                    targetFreq = tier.targetFreq;
+                    break;
+                }
+            }
+            if (userTier) finalRamMin = Math.ceil(finalRamMin * ramUserMult);
+            let recommendedServer = { ...serverReqs };
+            recommendedServer.ram_gb = finalRamMin;
+            recommendedServer.cpu_cores = serverReqs.cpu_cores + extraCores;
+            if (targetFreq) recommendedServer.cpu_freq_ghz = Math.max(recommendedServer.cpu_freq_ghz, targetFreq);
+
+            const resourceErrors = checkServerResources(server, serverReqs, finalRamMin, diskMin);
+            const osCheck = checkOsCompatibilityForServer(server);
+            let extraWarnings = [];
+            if (!osCheck.compatible) {
+                extraWarnings.push(`ОС: ${osCheck.message}`);
+            }
+            if (server.type === 'virtual') {
+                extraWarnings.push("Виртуальный сервер: критически важно настроить энергопотребление (BIOS → максимальная производительность, план питания хоста и гостя — «Высокая производительность»). Разместите тома БД на виртуальном диске, подключенном как локальный (не по сети!). Сетевое подключение томов БД снижает производительность на 20-30% даже на 10 Гбит/с.");
+            } else {
+                extraWarnings.push("Физический сервер: в UEFI/BIOS обязательно установите настройки энергопотребления в режим максимальной производительности (например, Energy Performance BIAS setting). В ОС выберите план «Высокая производительность».");
+            }
+
+            serversResults.push({
+                name: sname,
+                server: server,
+                assignedSubs: assignedSubs,
+                minReqs: serverReqs,
+                finalRamMin: finalRamMin,
+                diskMin: diskMin,
+                recommended: recommendedServer,
+                diskRecommended: diskRecommended,
+                subsystemCount: subsystemCount,
+                resourceErrors: resourceErrors,
+                extraWarnings: extraWarnings
+            });
+        }
+
+        // Глобальные предупреждения (общие)
+        let warnings = [];
+        for (let tier of config.scaling.userTiers) {
+            if (userCount >= tier.min && (tier.max === null || userCount <= tier.max)) {
+                let msg = `Количество пользователей (${userCount}) в диапазоне ${tier.min}-${tier.max || '∞'}. Рекомендуется увеличить RAM на ${Math.round((tier.ramMultiplier-1)*100)}% и добавить ${tier.extraCores} ядра CPU.${tier.targetFreq ? ` Частота до ${tier.targetFreq} ГГц.` : ''}`;
+                warnings.push(`👥 ${msg}`);
+                break;
+            }
+        }
+        if (docsMillion > config.scaling.baseDocsMillion) {
+            warnings.push(`📚 Объем документов ${docsMillion} млн (>${config.scaling.baseDocsMillion} млн). Автоматически добавлено +${extraRamByDocs} ГБ ОЗУ к минимальным требованиям (правило: +4 ГБ на каждые 3 млн док.).`);
+        }
+
+        if (allSelectedSubs.some(sub => sub.id === 'soglasovanie')) {
+            let soglasovanieOnWin = false;
+            for (let sub of allSelectedSubs) {
+                if (sub.id === 'soglasovanie') {
+                    const assignedServer = config.servers.find(s => s.name === config.subsystemAssignments[sub.id]);
+                    if (assignedServer && (assignedServer.os || 'win2019').startsWith('win')) {
+                        soglasovanieOnWin = true;
+                        break;
+                    }
+                }
+            }
+            if (!soglasovanieOnWin) {
+                warnings.push("⚠️ Подсистема «Согласование НД» требует Windows Server (серверная часть). Назначьте её на сервер с Windows.");
+            }
+        }
+        if (allSelectedSubs.some(sub => sub.id === 'kassist4')) {
+            for (let sub of allSelectedSubs) {
+                if (sub.id === 'kassist4') {
+                    const assignedServer = config.servers.find(s => s.name === config.subsystemAssignments[sub.id]);
+                    if (assignedServer && (assignedServer.os || 'win2019').startsWith('win')) {
+                        warnings.push("⚠️ Подсистема «кАссист 4» на сервере может работать под Windows, но клиентская часть ориентирована только на Linux. Убедитесь в совместимости.");
+                    }
+                }
+            }
+        }
+
+        let anyServerHasReserve = serversResults.some(r => r.subsystemCount >= config.scaling.subsystemCountThreshold);
+        if (anyServerHasReserve) {
+            warnings.push(`🔧 На некоторых серверах выбрано 5 и более подсистем. Применен коэффициент резервирования: RAM +${Math.round((config.scaling.subsystemRamMultiplier-1)*100)}%, диск +${Math.round((config.scaling.subsystemDiskMultiplier-1)*100)}% к минимальным требованиям.`);
+        }
+
+        // Глобальный статус
+        const hasAnyErrors = serversResults.some(r => r.resourceErrors.length > 0);
+        let globalStatusHtml = '';
+        if (hasAnyErrors) {
+            globalStatusHtml = `<div class="global-status fail">⚠️ ВНИМАНИЕ! Проверьте технические требования к серверам. Некоторые серверы не соответствуют минимальным требованиям.</div>`;
+        } else {
+            globalStatusHtml = `<div class="global-status ok">✅ Установка соответствует техническим требованиям.</div>`;
+        }
+
+        // Отображение результатов для серверов
+        const resultsContainer = document.getElementById('serverResultsContainer');
+        resultsContainer.innerHTML = '';
+        serversResults.forEach((res) => {
+            const serverDiv = document.createElement('div');
+            serverDiv.className = 'server-results';
+
+            const header = document.createElement('div');
+            header.className = 'server-header-result';
+            const isCollapsed = config.resultCollapsed[res.name] || false;
+            const icon = isCollapsed ? '▶' : '▼';
+            header.innerHTML = `<h3>🖥️ Сервер: ${res.name} ${res.name === config.selectedPlatformServer ? '(Платформа)' : ''}${res.name === config.selectedDbServer ? '(БД)' : ''}</h3>
+                                <span class="toggle-icon ${isCollapsed?'collapsed':''}" style="cursor:pointer;">${icon}</span>`;
+            header.addEventListener('click', () => {
+                config.resultCollapsed[res.name] = !config.resultCollapsed[res.name];
+                performCalculation(false);
+            });
+            serverDiv.appendChild(header);
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'server-content' + (isCollapsed ? ' hidden' : '');
+            serverDiv.appendChild(contentDiv);
+
+            const statusSpan = document.createElement('div');
+            statusSpan.className = 'server-status';
+            const hasResourceErrors = res.resourceErrors.length > 0;
+            if (!hasResourceErrors) {
+                statusSpan.classList.add('ok');
+                statusSpan.textContent = '✅ Ресурсы сервера достаточны';
+            } else {
+                statusSpan.classList.add('fail');
+                statusSpan.textContent = '❌ Ресурсы сервера НЕДОСТАТОЧНЫ';
+                const ul = document.createElement('ul');
+                ul.className = 'critical-list';
+                res.resourceErrors.forEach(err => {
+                    const li = document.createElement('li');
+                    li.textContent = err;
+                    ul.appendChild(li);
+                });
+                contentDiv.appendChild(ul);
+            }
+            contentDiv.appendChild(statusSpan);
+
+            if (res.extraWarnings && res.extraWarnings.length) {
+                const ul = document.createElement('ul');
+                ul.className = 'server-extra-warnings';
+                res.extraWarnings.forEach(w => {
+                    const li = document.createElement('li');
+                    li.textContent = w;
+                    ul.appendChild(li);
+                });
+                contentDiv.appendChild(ul);
+            }
+
+            const table = document.createElement('table');
+            table.className = 'result-table';
+            table.innerHTML = `<thead><tr><th>Параметр</th><th>Минимальные требования</th><th>Рекомендуемые</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+            const rows = [
+                { param: "Процессор (ядра/частота)", minVal: `${res.minReqs.cpu_cores} ядер, ${res.minReqs.cpu_freq_ghz} ГГц`, recVal: `${res.recommended.cpu_cores} ядер, ${res.recommended.cpu_freq_ghz} ГГц` },
+                { param: "Оперативная память (RAM)", minVal: `${res.finalRamMin} ГБ`, recVal: `${res.recommended.ram_gb} ГБ` },
+                { param: "Дисковое пространство (свободно)", minVal: `${res.diskMin} ГБ (SSD обязательно)`, recVal: `${res.diskRecommended} ГБ (SSD, RAID по возможности)` },
+                { param: "Сетевой адаптер", minVal: "1 Гбит/с и выше", recVal: "Рекомендуется 10 Гбит/с при большой нагрузке" },
+                { param: "Операционная система", minVal: `64-разрядная: Windows Server 2012/2016/2019/2022/2025 или Linux (ядро 3.0+ / Астра / Альт / РЕД / Атлант)`, recVal: `—` },
+                { param: "Настройки энергопотребления", minVal: "BIOS: макс. производительность; ОС: план «Высокая производительность»", recVal: res.server.type === 'virtual' ? "Хост + гость — одинаковый план макс. производительности" : "—" }
+            ];
+            rows.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${r.param}</strong></td><td>${r.minVal}</td><td>${r.recVal}</td>`;
+                tbody.appendChild(tr);
+            });
+            contentDiv.appendChild(table);
+            resultsContainer.appendChild(serverDiv);
+        });
+
+        // ---- Клиентские требования (новый блок) ----
+        const clientBlock = document.getElementById('clientResultsBlock');
+        const winReqs = config.clientReqs.windows;
+        const linReqs = config.clientReqs.linux;
+        const isClientCollapsed = config.clientCollapsed || false;
+        const clientIcon = isClientCollapsed ? '▶' : '▼';
+
+        let clientHtml = `
+            <div class="client-header-result" id="clientHeader">
+                <h3>🖱️ Клиентские требования</h3>
+                <span class="toggle-icon ${isClientCollapsed?'collapsed':''}" style="cursor:pointer;">${clientIcon}</span>
+            </div>
+            <div class="client-content ${isClientCollapsed?'hidden':''}" id="clientContent">
+                <div class="two-cols">
+                    <div class="col">
+                        <h4 style="margin:0 0 8px 0">⊞ Windows (64‑bit)</h4>
+                        <table class="result-table">
+                            <thead><tr><th>Параметр</th><th>Требования</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>Процессор</strong></td><td>от ${winReqs.cpu_freq_ghz} ГГц</td></tr>
+                                <tr><td><strong>ОЗУ</strong></td><td>${winReqs.ram_gb} ГБ</td></tr>
+                                <tr><td><strong>Сетевой адаптер</strong></td><td>${winReqs.network_mbps} Мбит/с и выше</td></tr>
+                                <tr><td><strong>Операционная система</strong></td><td>${winReqs.os}</td></tr>
+                                <tr><td><strong>Браузер</strong></td><td>${winReqs.browsers}</td></tr>
+                                <tr><td><strong>Дополнительно</strong></td><td>Только 64-разрядная ОС; включены JS, cookies, всплывающие окна</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col">
+                        <h4 style="margin:0 0 8px 0">🐧 Linux</h4>
+                        <table class="result-table">
+                            <thead><tr><th>Параметр</th><th>Требования</th></tr></thead>
+                            <tbody>
+                                <tr><td><strong>Процессор</strong></td><td>от ${linReqs.cpu_freq_ghz} ГГц</td></tr>
+                                <tr><td><strong>ОЗУ</strong></td><td>${linReqs.ram_gb} ГБ</td></tr>
+                                <tr><td><strong>Сетевой адаптер</strong></td><td>${linReqs.network_mbps} Мбит/с и выше</td></tr>
+                                <tr><td><strong>Операционная система</strong></td><td>${linReqs.os}</td></tr>
+                                <tr><td><strong>Браузер</strong></td><td>${linReqs.browsers}</td></tr>
+                                <tr><td><strong>Дополнительно</strong></td><td>Включены JS, cookies, всплывающие окна</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="note">Клиентские требования не зависят от нагрузки и одинаковы для всех версий Платформы.</div>
+            </div>
+        `;
+        clientBlock.innerHTML = clientHtml;
+        document.getElementById('clientHeader').addEventListener('click', function() {
+            config.clientCollapsed = !config.clientCollapsed;
+            const content = document.getElementById('clientContent');
+            const iconSpan = this.querySelector('.toggle-icon');
+            content.classList.toggle('hidden');
+            iconSpan.classList.toggle('collapsed');
+            iconSpan.textContent = config.clientCollapsed ? '▶' : '▼';
+        });
+
+        // ---- Глобальные предупреждения ----
+        const warnDiv = document.getElementById('warningsArea');
+        warnDiv.innerHTML = globalStatusHtml;
+        if (warnings.length) {
+            let ul = document.createElement('ul');
+            ul.className = 'warning-list';
+            warnings.forEach(w => {
+                const li = document.createElement('li');
+                li.innerHTML = w;
+                ul.appendChild(li);
+            });
+            warnDiv.appendChild(ul);
+        }
+
+        // ---- Дополнительные требования подсистем ----
+        const detailsBlock = document.getElementById('subsystemsDetailsBlock');
+        const detailsContent = document.getElementById('subsystemsDetailsContent');
+        const selectedWithWarnings = allSelectedSubs.filter(sub => sub.extraWarnings && sub.extraWarnings.length);
+        if (selectedWithWarnings.length) {
+            detailsBlock.style.display = 'block';
+            let html = '';
+            selectedWithWarnings.forEach(sub => {
+                html += `<div class="subsystem-detail-group"><strong>📌 ${sub.name}</strong><ul>${sub.extraWarnings.map(w => `<li>${w}</li>`).join('')}</ul></div>`;
+            });
+            detailsContent.innerHTML = html;
+            detailsContent.classList.remove('show');
+            const headerSpan = document.querySelector('#subsystemsDetailsHeader span:last-child');
+            if (headerSpan) headerSpan.textContent = '▼';
+        } else {
+            detailsBlock.style.display = 'none';
+        }
+
+        document.getElementById('scalingNote').innerHTML = `<strong>📐 Примечания по расчету:</strong><br>• Базовые требования сервера (минимальные): ${baseServer.cpu_cores} ядер / ${baseServer.cpu_freq_ghz} ГГц, ОЗУ ${baseServer.ram_gb} ГБ (до масштабирования).<br>• Диск: минимальный свободный объем рассчитывается с учетом резервирования для каждого сервера. Рекомендуется SSD.<br>• ${deployMode === 'reference' ? 'Режим "Только Справочная система" понижает базовые требования (ОЗУ 8 ГБ, 2 ядра).' : 'Полный контур СУНТД — штатные требования 16 ГБ/4 ядра.'}<br>• Для корректной работы обязательно соблюдать настройки энергопотребления (BIOS/ОС) и при виртуализации размещать БД локально.`;
+
+        document.getElementById('resultPanel').style.display = 'block';
+        if (doScroll) window.scrollTo({ top: document.getElementById('resultPanel').offsetTop - 20, behavior: 'smooth' });
+    }
+
+    function calculateWithoutScroll() { performCalculation(false); }
+    function calculateWithScroll() { performCalculation(true); }
+
+    // ---------- КОПИРОВАНИЕ СВОДКИ ----------
+    function exportSummary() {
+        let text = "=== Калькулятор ТТ СУНТД ===\n";
+        text += `Версия Платформы: ${document.getElementById('platformVersion').value} | Режим: ${document.getElementById('deployMode').options[document.getElementById('deployMode').selectedIndex].text}\n`;
+        text += `Пользователи: ${document.getElementById('userCount').value} | Документы: ${document.getElementById('docCount').value} млн\n`;
+        if (config.selectedPlatformServer) text += `Сервер Платформы: ${config.selectedPlatformServer}\n`;
+        if (config.selectedDbServer) text += `Сервер БД: ${config.selectedDbServer}\n`;
+        text += "\n--- Серверные требования ---\n";
+        const serverCards = document.querySelectorAll('.server-results');
+        serverCards.forEach(card => {
+            const title = card.querySelector('h3')?.innerText || 'Сервер';
+            text += `\n${title}:\n`;
+            const rows = card.querySelectorAll('.result-table tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 3) {
+                    text += `  ${cells[0].innerText} : ${cells[1].innerText} (рек. ${cells[2].innerText})\n`;
+                }
+            });
+            const extraWarn = card.querySelector('.server-extra-warnings');
+            if (extraWarn) {
+                const items = extraWarn.querySelectorAll('li');
+                if (items.length) {
+                    text += `  Доп. предупреждения:\n`;
+                    items.forEach(li => text += `    - ${li.innerText}\n`);
+                }
+            }
+            const critical = card.querySelector('.critical-list');
+            if (critical) {
+                const items = critical.querySelectorAll('li');
+                if (items.length) {
+                    text += `  Ошибки ресурсов:\n`;
+                    items.forEach(li => text += `    - ${li.innerText}\n`);
+                }
+            }
+        });
+
+        const clientBlock = document.getElementById('clientResultsBlock');
+        if (clientBlock) {
+            text += "\n--- Клиентские требования ---\n";
+            const winTable = clientBlock.querySelector('.col:first-child table tbody');
+            if (winTable) {
+                text += "Windows:\n";
+                winTable.querySelectorAll('tr').forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 2) text += `  ${cells[0].innerText} : ${cells[1].innerText}\n`;
+                });
+            }
+            const linTable = clientBlock.querySelector('.col:last-child table tbody');
+            if (linTable) {
+                text += "Linux:\n";
+                linTable.querySelectorAll('tr').forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 2) text += `  ${cells[0].innerText} : ${cells[1].innerText}\n`;
+                });
+            }
+        }
+
+        const warnDiv = document.getElementById('warningsArea');
+        if (warnDiv) {
+            const statusDiv = warnDiv.querySelector('.global-status');
+            if (statusDiv) text += `\n${statusDiv.innerText}\n`;
+            const warnList = warnDiv.querySelector('.warning-list');
+            if (warnList) {
+                warnList.querySelectorAll('li').forEach(li => text += `- ${li.innerText}\n`);
+            }
+        }
+
+        const detailsBlock = document.getElementById('subsystemsDetailsBlock');
+        if (detailsBlock && detailsBlock.style.display !== 'none') {
+            text += "\n--- Дополнительные требования подсистем ---\n";
+            const groups = detailsBlock.querySelectorAll('.subsystem-detail-group');
+            groups.forEach(group => {
+                const title = group.querySelector('strong')?.innerText || '';
+                text += `${title}:\n`;
+                group.querySelectorAll('li').forEach(li => text += `  - ${li.innerText}\n`);
+            });
+        }
+
+        const noteDiv = document.getElementById('scalingNote');
+        if (noteDiv) {
+            text += `\n--- Примечания ---\n${noteDiv.innerText}\n`;
+        }
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Сводка скопирована в буфер обмена');
+        }).catch(() => {
+            alert('Не удалось скопировать. Попробуйте скопировать вручную.');
+        });
+    }
+
+    // ---------- ОБРАБОТЧИКИ ----------
+    document.getElementById('calcBtn').addEventListener('click', calculateWithScroll);
+    document.getElementById('exportBtn').addEventListener('click', exportSummary);
+    document.getElementById('subsystemsDetailsHeader').addEventListener('click', function() {
+        const content = document.getElementById('subsystemsDetailsContent');
+        content.classList.toggle('show');
+        const span = document.querySelector('#subsystemsDetailsHeader span:last-child');
+        if (span) span.textContent = content.classList.contains('show') ? '▲' : '▼';
+    });
+    document.getElementById('platformVersion').addEventListener('change', () => { renderSubsystems(); calculateWithoutScroll(); });
+    document.getElementById('deployMode').addEventListener('change', calculateWithoutScroll);
+    document.getElementById('userCount').addEventListener('input', calculateWithoutScroll);
+    document.getElementById('docCount').addEventListener('input', calculateWithoutScroll);
+
+    // ---------- АДМИН-ПАНЕЛЬ ----------
+    const adminBtn = document.getElementById('adminBtn');
+    const modal = document.getElementById('adminModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const modalBody = document.getElementById('modalBody');
+
+    function openModal() { modal.style.display = 'flex'; renderAdminPanel(); }
+    function closeModal() { modal.style.display = 'none'; }
+    adminBtn.onclick = openModal;
+    closeModalBtn.onclick = closeModal;
+    window.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+    function renderAdminPanel() {
+        const activeTab = document.querySelector('.modal-tab.active').dataset.tab;
+        if (activeTab === 'platform') modalBody.innerHTML = renderPlatformTab();
+        else if (activeTab === 'client') modalBody.innerHTML = renderClientTab();
+        else if (activeTab === 'subsystems') modalBody.innerHTML = renderSubsystemsTab();
+        else if (activeTab === 'scaling') modalBody.innerHTML = renderScalingTab();
+        attachGlobalDelegation();
+    }
+
+    function renderPlatformTab() {
+        let html = `<div class="admin-form-group"><button id="addPlatformBtn" class="btn-small">+ Добавить версию</button></div><table class="admin-table"><thead><tr><th>Версия</th><th>CPU (ядер)</th><th>Частота (ГГц)</th><th>ОЗУ (ГБ)</th><th>База диска (ГБ)</th><th>Сеть (Гбит/с)</th><th>Действия</th></tr></thead><tbody>`;
+        const versions = Object.keys(config.platformReqs).sort();
+        for (let ver of versions) {
+            const p = config.platformReqs[ver];
+            html += `<tr data-version="${ver}"><td style="white-space:nowrap;">${ver}</td><td><input type="number" step="1" class="edit-cpu-cores" value="${p.cpu_cores}" style="width:70px"></td><td><input type="number" step="0.1" class="edit-cpu-freq" value="${p.cpu_freq_ghz}" style="width:70px"></td><td><input type="number" step="1" class="edit-ram" value="${p.ram_gb}" style="width:70px"></td><td><input type="number" step="1" class="edit-disk-base" value="${p.disk_free_gb_base}" style="width:70px"></td><td><input type="number" step="0.1" class="edit-network" value="${p.network_gbit}" style="width:70px"></td><td><button class="btn-small copy-version" data-version="${ver}">Создать на основе</button> <button class="btn-small btn-danger delete-version" data-version="${ver}">Удалить</button></td></tr>`;
+        }
+        html += `</tbody></table>`;
+        return html;
+    }
+
+    function renderClientTab() {
+        const win = config.clientReqs.windows, lin = config.clientReqs.linux;
+        return `<h4>Клиент Windows</h4><div class="admin-form-group"><label>Частота CPU (ГГц)</label><input type="number" step="0.1" id="win_cpu_freq" value="${win.cpu_freq_ghz}"><span class="helper-text">Минимальная тактовая частота процессора на рабочей станции</span></div><div class="admin-form-group"><label>Оперативная память (ГБ)</label><input type="number" step="1" id="win_ram" value="${win.ram_gb}"><span class="helper-text">Минимальный объем ОЗУ</span></div><div class="admin-form-group"><label>Сетевой адаптер (Мбит/с)</label><input type="number" step="10" id="win_net" value="${win.network_mbps}"><span class="helper-text">Пропускная способность сети</span></div><div class="admin-form-group"><label>Операционная система</label><input type="text" id="win_os" value="${win.os}"><span class="helper-text">Список поддерживаемых версий Windows</span></div><div class="admin-form-group"><label>Браузеры</label><input type="text" id="win_browsers" value="${win.browsers}"><span class="helper-text">Перечень браузеров, с которыми гарантированно работает веб-клиент</span></div><h4>Клиент Linux</h4><div class="admin-form-group"><label>Частота CPU (ГГц)</label><input type="number" step="0.1" id="lin_cpu_freq" value="${lin.cpu_freq_ghz}"><span class="helper-text">Минимальная тактовая частота процессора на рабочей станции</span></div><div class="admin-form-group"><label>Оперативная память (ГБ)</label><input type="number" step="1" id="lin_ram" value="${lin.ram_gb}"><span class="helper-text">Минимальный объем ОЗУ</span></div><div class="admin-form-group"><label>Сетевой адаптер (Мбит/с)</label><input type="number" step="10" id="lin_net" value="${lin.network_mbps}"><span class="helper-text">Пропускная способность сети</span></div><div class="admin-form-group"><label>Операционная система</label><input type="text" id="lin_os" value="${lin.os}"><span class="helper-text">Список поддерживаемых версий Linux</span></div><div class="admin-form-group"><label>Браузеры</label><input type="text" id="lin_browsers" value="${lin.browsers}"><span class="helper-text">Перечень браузеров, с которыми гарантированно работает веб-клиент</span></div>`;
+    }
+
+    function renderSubsystemsTab() {
+        let html = `<div class="admin-form-group"><button id="addSubsystemBtn" class="btn-small">+ Добавить подсистему</button></div><div id="subsystemsList">`;
+        config.subsystems.forEach((sub, idx) => {
+            html += `<div class="admin-form-group" data-subsys-index="${idx}" style="border:1px solid #e2e8f0; padding:0.8rem; margin-bottom:0.8rem; border-radius:16px;"><strong>${sub.name}</strong><div><label>Идентификатор подсистемы (ID)</label><input type="text" class="subsys-id" value="${sub.id}"></div><div><label>Название</label><input type="text" class="subsys-name" value="${sub.name}"></div><div><label>Требования (ОЗУ, CPU ядра, CPU частота)</label><input type="text" class="subsys-reqs" value="${sub.requirements.server.ram_gb}, ${sub.requirements.server.cpu_cores}, ${sub.requirements.server.cpu_freq_ghz}"><span class="helper-text">Формат: число, число, число (например: 16, 4, 2.7)</span></div><div><label>Дополнительные требования к подсистеме</label><textarea class="subsys-warnings" rows="3">${sub.extraWarnings.join('\n')}</textarea><span class="helper-text">Формат: каждое требование с новой строки</span></div><button class="btn-small btn-danger delete-subsystem" data-idx="${idx}">Удалить</button></div>`;
+        });
+        html += `</div>`;
+        return html;
+    }
+
+    function renderScalingTab() {
+        const s = config.scaling;
+        return `<div class="static-highlight"><strong>Глобальные правила </strong><br><div class="admin-form-group"><label>Базовый объем документов (млн)</label><input type="number" id="baseDocs" value="${s.baseDocsMillion}" readonly class="readonly-field"><span class="helper-text">До этого количества документов дополнительно ОЗУ не добавляется</span></div><div class="admin-form-group"><label>Дополнительно ОЗУ на каждые 3 млн (ГБ)</label><input type="number" id="ramPerExtra" value="${s.ramPerExtra3MillionGB}" readonly class="readonly-field"><span class="helper-text">Сколько гигабайт ОЗУ добавляется за каждые 3 млн документов сверх базового уровня</span></div></div>
+        <h4>Коэффициент резервирования при большом количестве подсистем</h4>
+        <div class="admin-form-group config-block"><label>Порог количества подсистем</label><input type="number" id="subsysThresh" value="${s.subsystemCountThreshold}"><span class="helper-text">Если выбрано столько или больше подсистем, применяются множители. Пример: если выбрано 5 подсистем, то при достижении этого количества подсистем рекомендуется использовать дополнительные ресурсы памяти</span></div>
+        <div class="admin-form-group config-block"><label>Множитель ОЗУ</label><input type="number" step="0.01" id="subsysRamMult" value="${s.subsystemRamMultiplier}"><span class="helper-text">Пример: 1.15 = увеличение на 15%</span></div>
+        <div class="admin-form-group config-block"><label>Множитель диска</label><input type="number" step="0.01" id="subsysDiskMult" value="${s.subsystemDiskMultiplier}"><span class="helper-text">Пример: 1.10 = увеличение на 10%</span></div>
+        <h4>Градация нагрузки по пользователям</h4>
+        <div id="tiersContainer">${s.userTiers.map((t,i)=>`<div class="config-block" data-tier-index="${i}" style="position:relative;"><button class="btn-small btn-danger remove-tier" style="position:absolute; top:0.5rem; right:0.5rem;">Удалить диапазон</button><div><label>Нижняя граница количества пользователей (вкл.)</label><input type="number" class="tier-min" value="${t.min}"></div><div><label>Верхняя граница количества пользователей (вкл., если значение не указано - ∞)</label><input type="number" class="tier-max" value="${t.max===null?'':t.max}"></div><div><label>Множитель ОЗУ</label><input type="number" step="0.1" class="tier-ram-mult" value="${t.ramMultiplier}"></div><div><label>Добавляемых ядер CPU</label><input type="number" class="tier-cores" value="${t.extraCores}"></div><div><label>Рекомендуемая частота (ГГц)</label><input type="number" step="0.1" class="tier-freq" value="${t.targetFreq===null?'':t.targetFreq}"></div></div>`).join('')}</div>
+        <button id="addTierBtn" class="btn-small">+ Добавить диапазон</button>
+        <h4>Формула дискового пространства</h4>
+        <div id="diskRangesContainer">${s.diskFormula.ranges.map((r,i)=>`<div class="config-block" data-range-index="${i}" style="position:relative;"><button class="btn-small btn-danger remove-range" style="position:absolute; top:0.5rem; right:0.5rem;">Удалить диапазон</button><div><label>Верхняя граница количества документов (если значение не указано - ∞)</label><input type="number" class="range-max" value="${r.max===null?'':r.max}"></div><div><label>Количество затрачиваемых ресурсов на единицу (ГБ/млн)</label><input type="number" step="0.1" class="range-coeff" value="${r.coeff}"></div><div><label>Фиксированный запас внутри диапазона (ГБ)</label><input type="number" class="range-extra" value="${r.extra}"></div></div>`).join('')}</div>
+        <button id="addRangeBtn" class="btn-small">+ Добавить диапазон</button>
+        <div class="admin-form-group config-block"><label>Рекомендуемый диск: дополнительно к минимальному объему памяти (ГБ)</label><input type="number" id="diskPadding" value="${s.diskRecommendedPadding}"><span class="helper-text">Дополнительно рекомендованный объем памяти диска. Не входит в расчет минимальных требований. Пример: 30</span></div>
+        <h4>Режим «Только Справочная система»</h4>
+        <div class="admin-form-group config-block"><label>ОЗУ (ГБ)</label><input type="number" id="refRam" value="${s.referenceModeFactor.ram_gb}"></div>
+        <div class="admin-form-group config-block"><label>CPU (ядер)</label><input type="number" id="refCores" value="${s.referenceModeFactor.cpu_cores}"></div>
+        <div class="admin-form-group config-block"><label>CPU частота (ГГц)</label><input type="number" step="0.1" id="refFreq" value="${s.referenceModeFactor.cpu_freq_ghz}"></div>`;
+    }
+
+    function attachGlobalDelegation() {
+        modalBody.removeEventListener('click', handleModalClick);
+        modalBody.addEventListener('click', handleModalClick);
+    }
+
+    function handleModalClick(e) {
+        const target = e.target;
+        if (target.classList.contains('copy-version')) {
+            const ver = target.dataset.version;
+            const newVer = prompt('Введите название новой версии (например, 6.5.0)');
+            if (newVer && !config.platformReqs[newVer]) {
+                config.platformReqs[newVer] = JSON.parse(JSON.stringify(config.platformReqs[ver]));
+                renderAdminPanel();
+            } else if (newVer) alert('Версия уже существует');
+        } else if (target.classList.contains('delete-version')) {
+            const ver = target.dataset.version;
+            if (ver !== '6.4.5' && ver !== '6.4.6' && confirm(`Удалить версию ${ver}?`)) {
+                delete config.platformReqs[ver];
+                renderAdminPanel();
+            } else alert('Нельзя удалить базовые версии');
+        } else if (target.id === 'addPlatformBtn') {
+            const newVer = prompt('Название версии (например, 6.5.0)');
+            if (newVer && !config.platformReqs[newVer]) {
+                config.platformReqs[newVer] = { cpu_cores:0, cpu_freq_ghz:0, ram_gb:0, disk_free_gb_base:0, network_gbit:0, bios_power_setting:true, os_windows:[], os_linux_compatible:[], power_plan_recommended:"" };
+                renderAdminPanel();
+            } else if (newVer) alert('Версия уже существует');
+        } else if (target.id === 'addSubsystemBtn') {
+            const newId = prompt('Введите идентификатор подсистемы (ID)');
+            if (newId && !config.subsystems.find(s=>s.id===newId)) {
+                config.subsystems.push({ id:newId, name:'Новая подсистема', requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:[] });
+                renderAdminPanel();
+            } else if (newId) alert('ID уже существует');
+        } else if (target.classList.contains('delete-subsystem')) {
+            const idx = parseInt(target.dataset.idx);
+            if (confirm('Удалить подсистему?')) { config.subsystems.splice(idx,1); renderAdminPanel(); }
+        } else if (target.id === 'addTierBtn') {
+            config.scaling.userTiers.push({ min:1, max:null, ramMultiplier:1.0, extraCores:0, targetFreq:null });
+            renderAdminPanel();
+        } else if (target.classList.contains('remove-tier')) {
+            const block = target.closest('.config-block');
+            if (block) {
+                const idx = parseInt(block.dataset.tierIndex);
+                if (!isNaN(idx) && config.scaling.userTiers.length > 1) {
+                    config.scaling.userTiers.splice(idx,1);
+                    renderAdminPanel();
+                } else if (config.scaling.userTiers.length === 1) alert('Должен остаться хотя бы один диапазон');
+            }
+        } else if (target.id === 'addRangeBtn') {
+            config.scaling.diskFormula.ranges.push({ max:null, coeff:1.0, extra:0 });
+            renderAdminPanel();
+        } else if (target.classList.contains('remove-range')) {
+            const block = target.closest('.config-block');
+            if (block) {
+                const idx = parseInt(block.dataset.rangeIndex);
+                if (!isNaN(idx) && config.scaling.diskFormula.ranges.length > 1) {
+                    config.scaling.diskFormula.ranges.splice(idx,1);
+                    renderAdminPanel();
+                } else if (config.scaling.diskFormula.ranges.length === 1) alert('Должен остаться хотя бы один диапазон');
+            }
+        }
+    }
+
+    function collectAdminData() {
+        const versionRows = document.querySelectorAll('#modalBody table tbody tr');
+        if (versionRows.length) {
+            versionRows.forEach(row => {
+                const ver = row.dataset.version;
+                if (ver && config.platformReqs[ver]) {
+                    config.platformReqs[ver].cpu_cores = parseInt(row.querySelector('.edit-cpu-cores').value);
+                    config.platformReqs[ver].cpu_freq_ghz = parseFloat(row.querySelector('.edit-cpu-freq').value);
+                    config.platformReqs[ver].ram_gb = parseInt(row.querySelector('.edit-ram').value);
+                    config.platformReqs[ver].disk_free_gb_base = parseInt(row.querySelector('.edit-disk-base').value);
+                    config.platformReqs[ver].network_gbit = parseFloat(row.querySelector('.edit-network').value);
+                }
+            });
+        }
+        if (document.getElementById('win_cpu_freq')) {
+            config.clientReqs.windows = { cpu_freq_ghz: parseFloat(document.getElementById('win_cpu_freq').value), ram_gb: parseInt(document.getElementById('win_ram').value), network_mbps: parseInt(document.getElementById('win_net').value), os: document.getElementById('win_os').value, browsers: document.getElementById('win_browsers').value };
+            config.clientReqs.linux = { cpu_freq_ghz: parseFloat(document.getElementById('lin_cpu_freq').value), ram_gb: parseInt(document.getElementById('lin_ram').value), network_mbps: parseInt(document.getElementById('lin_net').value), os: document.getElementById('lin_os').value, browsers: document.getElementById('lin_browsers').value };
+        }
+        const subsysDivs = document.querySelectorAll('#subsystemsList > div');
+        if (subsysDivs.length) {
+            let newSubsystems = [];
+            subsysDivs.forEach(div => {
+                let id = div.querySelector('.subsys-id').value;
+                let name = div.querySelector('.subsys-name').value;
+                let reqs = div.querySelector('.subsys-reqs').value.split(',').map(s=>parseFloat(s.trim()));
+                let ram = reqs[0], cores = reqs[1], freq = reqs[2];
+                let warnings = div.querySelector('.subsys-warnings').value.split('\n').filter(l=>l.trim().length);
+                newSubsystems.push({ id, name, requirements: { server: { ram_gb: ram, cpu_cores: cores, cpu_freq_ghz: freq } }, extraWarnings: warnings });
+            });
+            config.subsystems = newSubsystems;
+        }
+        if (document.getElementById('baseDocs')) {
+            config.scaling.baseDocsMillion = parseFloat(document.getElementById('baseDocs').value);
+            config.scaling.ramPerExtra3MillionGB = parseFloat(document.getElementById('ramPerExtra').value);
+            config.scaling.subsystemCountThreshold = parseInt(document.getElementById('subsysThresh').value);
+            config.scaling.subsystemRamMultiplier = parseFloat(document.getElementById('subsysRamMult').value);
+            config.scaling.subsystemDiskMultiplier = parseFloat(document.getElementById('subsysDiskMult').value);
+            let newTiers = [];
+            const tierDivs = document.querySelectorAll('#tiersContainer .config-block');
+            tierDivs.forEach(div => {
+                let min = parseInt(div.querySelector('.tier-min').value);
+                let max = div.querySelector('.tier-max').value;
+                max = (max === '') ? null : parseInt(max);
+                let ramMult = parseFloat(div.querySelector('.tier-ram-mult').value);
+                let cores = parseInt(div.querySelector('.tier-cores').value);
+                let freq = parseFloat(div.querySelector('.tier-freq').value) || null;
+                newTiers.push({ min, max, ramMultiplier: ramMult, extraCores: cores, targetFreq: freq });
+            });
+            config.scaling.userTiers = newTiers;
+            let newRanges = [];
+            const rangeDivs = document.querySelectorAll('#diskRangesContainer .config-block');
+            rangeDivs.forEach(div => {
+                let max = div.querySelector('.range-max').value;
+                max = (max === '') ? null : parseFloat(max);
+                let coeff = parseFloat(div.querySelector('.range-coeff').value);
+                let extra = parseFloat(div.querySelector('.range-extra').value);
+                newRanges.push({ max, coeff, extra });
+            });
+            config.scaling.diskFormula.ranges = newRanges;
+            config.scaling.diskRecommendedPadding = parseInt(document.getElementById('diskPadding').value);
+            config.scaling.referenceModeFactor = {
+                ram_gb: parseInt(document.getElementById('refRam').value),
+                cpu_cores: parseInt(document.getElementById('refCores').value),
+                cpu_freq_ghz: parseFloat(document.getElementById('refFreq').value)
+            };
+        }
+    }
+
+    document.getElementById('saveConfigBtn').onclick = () => { collectAdminData(); saveConfig(); };
+    document.getElementById('resetConfigBtn').onclick = () => { if (confirm('Вернуть все исходные значения?')) { localStorage.removeItem('suntd_calculator_config'); location.reload(); } };
+    document.getElementById('exportConfigBtn').onclick = () => { let dataStr = JSON.stringify(config, null, 2); let blob = new Blob([dataStr], {type:'application/json'}); let url = URL.createObjectURL(blob); let a = document.createElement('a'); a.href = url; a.download = 'calculator_config.json'; a.click(); URL.revokeObjectURL(url); };
+    document.getElementById('importConfigBtn').onclick = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) { alert('Файл не выбран'); return; }
+            try {
+                const content = await file.text();
+                if (!content || content.trim() === '') throw new Error('Файл пуст');
+                let cleanContent = content.charCodeAt(0) === 0xFEFF ? content.slice(1) : content;
+                const imported = JSON.parse(cleanContent);
+                config = deepMerge(DEFAULT_CONFIG, imported);
+                saveConfig();
+            } catch (err) {
+                console.error('Ошибка импорта:', err);
+                alert(`Ошибка импорта: ${err.message}\nПроверьте файл на корректность JSON.\nПодробности в консоли (F12).`);
+            }
+        };
+        input.click();
+    };
+
+    document.querySelectorAll('.modal-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            renderAdminPanel();
+        });
+    });
+
+    // ---------- ЗАГРУЗКА ----------
+    loadConfig();
+    setTimeout(() => calculateWithoutScroll(), 100);
+</script>
+</body>
+</html>
