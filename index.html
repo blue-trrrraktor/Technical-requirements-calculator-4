@@ -5,638 +5,122 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Калькулятор технических требований СУНТД</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-            background: #f0f2f5;
-            margin: 0;
-            padding: 24px 20px;
-            color: #1e293b;
-            position: relative;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            margin: 0 0 0.25rem 0;
-            color: #0f3b5c;
-        }
-        .sub {
-            color: #2c5a7a;
-            margin-bottom: 2rem;
-            border-left: 4px solid #2c7da0;
-            padding-left: 1rem;
-            font-weight: 400;
-        }
-        .admin-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ffffffcc;
-            border: 1px solid #94a3b8;
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #1e293b;
-            cursor: pointer;
-            transition: 0.2s;
-            z-index: 100;
-            backdrop-filter: blur(4px);
-        }
-        .admin-btn:hover {
-            background: #e2e8f0;
-            border-color: #2c7da0;
-        }
-        .card {
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-            padding: 1.5rem 2rem;
-            margin-bottom: 2rem;
-        }
-        .card h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-top: 0;
-            margin-bottom: 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 0.6rem;
-        }
-        .flex-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            align-items: flex-start;
-        }
-        .input-group {
-            flex: 1;
-            min-width: 220px;
-        }
-        label {
-            font-weight: 600;
-            display: block;
-            margin-bottom: 0.4rem;
-            color: #0c4e6e;
-        }
-        select, input, .checkbox-group {
-            width: 100%;
-            padding: 0.6rem 0.8rem;
-            border-radius: 14px;
-            border: 1px solid #cbd5e1;
-            background: white;
-            font-size: 0.95rem;
-        }
-        select:focus, input:focus {
-            outline: none;
-            border-color: #2c7da0;
-            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
-        }
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
-        .checkbox-group label {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-weight: normal;
-            cursor: pointer;
-        }
-        .subsystems-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            background: #f9f9ff;
-            padding: 1rem;
-            border-radius: 20px;
-            border: 1px solid #e0e7ff;
-        }
-        .subsystem-item {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            justify-content: flex-start;
-        }
-        .subsystem-item input {
-            width: auto;
-            margin-right: 4px;
-        }
-        button {
-            background: #2c7da0;
-            color: white;
-            border: none;
-            padding: 0.8rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            margin-top: 0.5rem;
-        }
-        button:hover {
-            background: #1f5e7a;
-            transform: translateY(-1px);
-        }
-        .result-section {
-            background: #fefce8;
-            border-left: 6px solid #eab308;
-        }
-        .result-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 1rem 0;
-        }
-        .result-table th, .result-table td {
-            text-align: left;
-            padding: 12px 10px;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: top;
-        }
-        .result-table th {
-            background: #f1f5f9;
-            font-weight: 700;
-            width: 30%;
-        }
-        .warning-list {
-            margin: 1rem 0 0 0;
-            padding-left: 1.2rem;
-        }
-        .warning-list li {
-            margin: 0.5rem 0;
-            color: #9b2c1d;
-        }
-        .warning-list li.critical {
-            color: #991b1b;
-            font-weight: bold;
-            background: #fecaca;
-            padding: 0.3rem 0.6rem;
-            border-radius: 12px;
-            list-style: none;
-        }
-        .two-cols {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-        .col {
-            flex: 1;
-            min-width: 280px;
-        }
-        .note {
-            font-size: 0.8rem;
-            color: #475569;
-            background: #f1f5f9;
-            padding: 0.8rem;
-            border-radius: 16px;
-            margin-top: 1rem;
-        }
-        .client-os-section {
-            margin-bottom: 1rem;
-            border-radius: 16px;
-            background: #ffffffcc;
-            padding: 0.5rem 0;
-            overflow-x: auto;
-        }
-        .subsystems-details {
-            margin-top: 1.5rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            background: #ffffff;
-            overflow: hidden;
-        }
-        .subsystems-details-header {
-            background: #f1f5f9;
-            padding: 0.8rem 1.2rem;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-        .subsystems-details-header:hover {
-            background: #e2e8f0;
-        }
-        .subsystems-details-content {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #e2e8f0;
-            display: none;
-        }
-        .subsystems-details-content.show {
-            display: block;
-        }
-        .subsystem-detail-group {
-            margin-bottom: 1.2rem;
-        }
-        .subsystem-detail-group strong {
-            display: block;
-            margin-bottom: 0.3rem;
-            color: #0c4e6e;
-        }
-        .subsystem-detail-group ul {
-            margin: 0.2rem 0 0 1.2rem;
-            padding-left: 0;
-        }
-        .subsystem-detail-group li {
-            margin: 0.2rem 0;
-            color: #475569;
-        }
-        footer {
-            text-align: center;
-            margin-top: 2rem;
-            font-size: 0.75rem;
-            color: #5b6e8c;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white;
-            width: 90%;
-            max-width: 1100px;
-            max-height: 90vh;
-            border-radius: 28px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
-        }
-        .modal-header {
-            padding: 1rem 1.5rem;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-header h3 {
-            margin: 0;
-            font-size: 1.2rem;
-        }
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            margin: 0;
-            padding: 0;
-            line-height: 1;
-        }
-        .modal-tabs {
-            display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem 1.5rem;
-            background: #f1f5f9;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .modal-tab {
-            background: none;
-            border: none;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            border-radius: 20px;
-            margin: 0;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #475569;
-        }
-        .modal-tab.active {
-            background: white;
-            color: #0f3b5c;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .modal-body {
-            padding: 1.5rem;
-            overflow-y: auto;
-            flex: 1;
-        }
-        .admin-form-group {
-            margin-bottom: 1.2rem;
-        }
-        .admin-form-group label {
-            font-weight: 600;
-            margin-bottom: 0.3rem;
-            font-size: 0.9rem;
-        }
-        .admin-form-group input, .admin-form-group textarea, .admin-form-group select {
-            width: 100%;
-            padding: 0.5rem;
-            border-radius: 12px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.9rem;
-        }
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-        .admin-table th, .admin-table td {
-            border: 1px solid #e2e8f0;
-            padding: 0.5rem;
-            text-align: left;
-            vertical-align: top;
-        }
-        .admin-table th {
-            background: #f1f5f9;
-        }
-        .btn-small {
-            background: #e2e8f0;
-            color: #1e293b;
-            padding: 0.4rem 0.8rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-            margin: 0;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-        }
-        .btn-danger {
-            background: #fecaca;
-            color: #991b1b;
-        }
-        .helper-text {
-            display: block;
-            font-size: 0.7rem;
-            color: #64748b;
-            margin-top: 0.2rem;
-        }
-        .config-block {
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            border-radius: 16px;
-            background: #f8fafc;
-        }
-        .config-block:nth-child(even) {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-        }
-        .static-highlight {
-            background: #fef9c3;
-            border-left: 6px solid #eab308;
-            padding: 0.8rem;
-            margin-bottom: 1.5rem;
-            border-radius: 16px;
-        }
-        .readonly-field {
-            background-color: #f1f5f9;
-            cursor: default;
-        }
-        .servers-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 0.5rem;
-        }
-        .server-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 1rem;
-            transition: 0.2s;
-        }
-        .server-item .server-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .server-item .server-header strong {
-            font-size: 1rem;
-            flex: 1;
-            min-width: 120px;
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-        .server-item .server-header strong input {
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            background: transparent;
-            width: auto;
-            min-width: 100px;
-            padding: 0.2rem 0.4rem;
-            border-bottom: 1px dashed #94a3b8;
-        }
-        .server-item .server-header strong input:focus {
-            outline: none;
-            border-bottom-color: #2c7da0;
-        }
-        .server-item .server-details {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            align-items: center;
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            padding-top: 0.5rem;
-            border-top: 1px solid #e2e8f0;
-        }
-        .server-item .server-details label {
-            font-weight: normal;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.3rem;
-        }
-        .server-item .server-details input, .server-item .server-details select {
-            width: 70px;
-            padding: 0.2rem 0.4rem;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.8rem;
-        }
-        .server-item .server-details select {
-            width: auto;
-            min-width: 100px;
-        }
-        .server-item .btn-small {
-            margin-left: 0.5rem;
-        }
-        .subsystem-item select {
-            width: auto;
-            padding: 0.2rem 0.4rem;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.8rem;
-            margin-left: 0.5rem;
-        }
-        .server-results {
-            margin-top: 1.5rem;
-            border-top: 2px solid #e2e8f0;
-            padding-top: 1rem;
-            position: relative;
-        }
-        .server-results .server-header-result {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-            background: #f1f5f9;
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            margin: 1rem 0 0.5rem 0;
-        }
-        .server-results .server-header-result h3 {
-            margin: 0;
-            font-size: 1.1rem;
-        }
-        .server-results .server-header-result .toggle-icon {
-            font-size: 0.9rem;
-            transition: transform 0.2s;
-            margin-left: 0.5rem;
-        }
-        .server-results .server-header-result .toggle-icon.collapsed {
-            transform: rotate(-90deg);
-        }
-        .server-results .server-content {
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            max-height: 2000px;
-        }
-        .server-results .server-content.hidden {
-            max-height: 0;
-            padding: 0;
-            margin: 0;
-        }
-        .server-results .result-table {
-            margin: 0.5rem 0 1.5rem;
-        }
-        .server-results .server-status {
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            padding: 0.3rem 0.8rem;
-            border-radius: 12px;
-            display: inline-block;
-        }
-        .server-status.ok {
-            background: #bbf7d0;
-            color: #166534;
-        }
-        .server-status.fail {
-            background: #fecaca;
-            color: #991b1b;
-        }
-        .critical-list {
-            margin-top: 0.5rem;
-            padding-left: 1.2rem;
-        }
-        .critical-list li {
-            color: #991b1b;
-            margin: 0.2rem 0;
-        }
-        .server-extra-warnings {
-            margin-top: 0.5rem;
-            padding-left: 1.2rem;
-        }
-        .server-extra-warnings li {
-            color: #92400e;
-            margin: 0.2rem 0;
-        }
-        .global-status {
-            font-size: 1rem;
-            font-weight: bold;
-            padding: 0.5rem 1rem;
-            border-radius: 16px;
-            margin-bottom: 0.5rem;
-        }
-        .global-status.ok {
-            background: #bbf7d0;
-            color: #166534;
-        }
-        .global-status.fail {
-            background: #fecaca;
-            color: #991b1b;
-        }
-        .client-results-block {
-            margin-top: 1.5rem;
-            border-top: 2px solid #e2e8f0;
-            padding-top: 1rem;
-        }
-        .client-results-block .client-header-result {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-            background: #f1f5f9;
-            padding: 0.4rem 1rem;
-            border-radius: 20px;
-            margin: 1rem 0 0.5rem 0;
-        }
-        .client-results-block .client-header-result h3 {
-            margin: 0;
-            font-size: 1.1rem;
-        }
-        .client-results-block .client-header-result .toggle-icon {
-            font-size: 0.9rem;
-            transition: transform 0.2s;
-            margin-left: 0.5rem;
-        }
-        .client-results-block .client-header-result .toggle-icon.collapsed {
-            transform: rotate(-90deg);
-        }
-        .client-results-block .client-content {
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-            max-height: 2000px;
-        }
-        .client-results-block .client-content.hidden {
-            max-height: 0;
-            padding: 0;
-            margin: 0;
-        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Roboto, system-ui, sans-serif; background: #f0f2f5; margin: 0; padding: 24px 20px; color: #1e293b; position: relative; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { font-size: 1.8rem; font-weight: 600; margin: 0 0 0.25rem 0; color: #0f3b5c; }
+        .sub { color: #2c5a7a; margin-bottom: 2rem; border-left: 4px solid #2c7da0; padding-left: 1rem; font-weight: 400; }
+        .admin-btn { position: fixed; top: 20px; right: 20px; background: #ffffffcc; border: 1px solid #94a3b8; padding: 8px 16px; border-radius: 30px; font-size: 0.9rem; font-weight: 500; color: #1e293b; cursor: pointer; transition: 0.2s; z-index: 100; backdrop-filter: blur(4px); }
+        .admin-btn:hover { background: #e2e8f0; border-color: #2c7da0; }
+        .card { background: white; border-radius: 24px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); padding: 1.5rem 2rem; margin-bottom: 2rem; }
+        .card h2 { font-size: 1.5rem; font-weight: 600; margin-top: 0; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.6rem; }
+        .flex-row { display: flex; flex-wrap: wrap; gap: 2rem; align-items: flex-start; }
+        .input-group { flex: 1; min-width: 220px; }
+        label { font-weight: 600; display: block; margin-bottom: 0.4rem; color: #0c4e6e; }
+        select, input, .checkbox-group { width: 100%; padding: 0.6rem 0.8rem; border-radius: 14px; border: 1px solid #cbd5e1; background: white; font-size: 0.95rem; }
+        select:focus, input:focus { outline: none; border-color: #2c7da0; box-shadow: 0 0 0 3px rgba(44,125,160,0.2); }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; }
+        .checkbox-group label { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: normal; cursor: pointer; }
+        .subsystems-list { display: flex; flex-direction: column; gap: 0.75rem; background: #f9f9ff; padding: 1rem; border-radius: 20px; border: 1px solid #e0e7ff; }
+        .subsystem-item { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; justify-content: flex-start; }
+        .subsystem-item input { width: auto; margin-right: 4px; }
+        button { background: #2c7da0; color: white; border: none; padding: 0.8rem 2rem; font-size: 1rem; font-weight: 600; border-radius: 40px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 0.5rem; }
+        button:hover { background: #1f5e7a; transform: translateY(-1px); }
+        .result-section { background: #fefce8; border-left: 6px solid #eab308; }
+        .result-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .result-table th, .result-table td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+        .result-table th { background: #f1f5f9; font-weight: 700; width: 30%; }
+        .warning-list { margin: 1rem 0 0 0; padding-left: 1.2rem; }
+        .warning-list li { margin: 0.5rem 0; color: #9b2c1d; }
+        .warning-list li.critical { color: #991b1b; font-weight: bold; background: #fecaca; padding: 0.3rem 0.6rem; border-radius: 12px; list-style: none; }
+        .two-cols { display: flex; gap: 2rem; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 280px; }
+        .note { font-size: 0.8rem; color: #475569; background: #f1f5f9; padding: 0.8rem; border-radius: 16px; margin-top: 1rem; }
+        .client-os-section { margin-bottom: 1rem; border-radius: 16px; background: #ffffffcc; padding: 0.5rem 0; overflow-x: auto; }
+        .subsystems-details { margin-top: 1.5rem; border: 1px solid #e2e8f0; border-radius: 20px; background: #ffffff; overflow: hidden; }
+        .subsystems-details-header { background: #f1f5f9; padding: 0.8rem 1.2rem; cursor: pointer; font-weight: 600; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .subsystems-details-header:hover { background: #e2e8f0; }
+        .subsystems-details-content { padding: 1rem 1.5rem; border-top: 1px solid #e2e8f0; display: none; }
+        .subsystems-details-content.show { display: block; }
+        .subsystem-detail-group { margin-bottom: 1.2rem; }
+        .subsystem-detail-group strong { display: block; margin-bottom: 0.3rem; color: #0c4e6e; }
+        .subsystem-detail-group ul { margin: 0.2rem 0 0 1.2rem; padding-left: 0; }
+        .subsystem-detail-group li { margin: 0.2rem 0; color: #475569; }
+        footer { text-align: center; margin-top: 2rem; font-size: 0.75rem; color: #5b6e8c; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 1100px; max-height: 90vh; border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 35px rgba(0,0,0,0.2); }
+        .modal-header { padding: 1rem 1.5rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { margin: 0; font-size: 1.2rem; }
+        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; margin: 0; padding: 0; line-height: 1; }
+        .modal-tabs { display: flex; gap: 0.5rem; padding: 0.5rem 1.5rem; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; }
+        .modal-tab { background: none; border: none; padding: 0.5rem 1rem; cursor: pointer; border-radius: 20px; margin: 0; font-weight: 500; font-size: 0.9rem; color: #475569; }
+        .modal-tab.active { background: white; color: #0f3b5c; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
+        .admin-form-group { margin-bottom: 1.2rem; }
+        .admin-form-group label { font-weight: 600; margin-bottom: 0.3rem; font-size: 0.9rem; }
+        .admin-form-group input, .admin-form-group textarea, .admin-form-group select { width: 100%; padding: 0.5rem; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 0.9rem; }
+        .admin-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; font-size: 0.9rem; }
+        .admin-table th, .admin-table td { border: 1px solid #e2e8f0; padding: 0.5rem; text-align: left; vertical-align: top; }
+        .admin-table th { background: #f1f5f9; }
+        .btn-small { background: #e2e8f0; color: #1e293b; padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 500; margin: 0; border-radius: 20px; border: none; cursor: pointer; }
+        .btn-danger { background: #fecaca; color: #991b1b; }
+        .helper-text { display: block; font-size: 0.7rem; color: #64748b; margin-top: 0.2rem; }
+        .config-block { padding: 0.8rem; margin-bottom: 1rem; border-radius: 16px; background: #f8fafc; }
+        .config-block:nth-child(even) { background: #ffffff; border: 1px solid #e2e8f0; }
+        .static-highlight { background: #fef9c3; border-left: 6px solid #eab308; padding: 0.8rem; margin-bottom: 1.5rem; border-radius: 16px; }
+        .readonly-field { background-color: #f1f5f9; cursor: default; }
+        .servers-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem; }
+        .server-item { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1rem; transition: 0.2s; }
+        .server-item .server-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
+        .server-item .server-header strong { font-size: 1rem; flex: 1; min-width: 120px; display: flex; align-items: center; gap: 0.3rem; }
+        .server-item .server-header strong input { font-size: 1rem; font-weight: bold; border: none; background: transparent; width: auto; min-width: 100px; padding: 0.2rem 0.4rem; border-bottom: 1px dashed #94a3b8; }
+        .server-item .server-header strong input:focus { outline: none; border-bottom-color: #2c7da0; }
+        .server-item .server-details { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; font-size: 0.85rem; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #e2e8f0; }
+        .server-item .server-details label { font-weight: normal; display: inline-flex; align-items: center; gap: 0.3rem; }
+        .server-item .server-details input, .server-item .server-details select { width: 70px; padding: 0.2rem 0.4rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.8rem; }
+        .server-item .server-details select { width: auto; min-width: 100px; }
+        .server-item .btn-small { margin-left: 0.5rem; }
+        .subsystem-item select { width: auto; padding: 0.2rem 0.4rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.8rem; margin-left: 0.5rem; }
+        .server-results { margin-top: 1.5rem; border-top: 2px solid #e2e8f0; padding-top: 1rem; position: relative; }
+        .server-results .server-header-result { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: #f1f5f9; padding: 0.4rem 1rem; border-radius: 20px; margin: 1rem 0 0.5rem 0; }
+        .server-results .server-header-result h3 { margin: 0; font-size: 1.1rem; }
+        .server-results .server-header-result .toggle-icon { font-size: 0.9rem; transition: transform 0.2s; margin-left: 0.5rem; }
+        .server-results .server-header-result .toggle-icon.collapsed { transform: rotate(-90deg); }
+        .server-results .server-content { overflow: hidden; transition: max-height 0.3s ease; max-height: 2000px; }
+        .server-results .server-content.hidden { max-height: 0; padding: 0; margin: 0; }
+        .server-results .result-table { margin: 0.5rem 0 1.5rem; }
+        .server-results .server-status { font-size: 0.9rem; margin-bottom: 0.5rem; padding: 0.3rem 0.8rem; border-radius: 12px; display: inline-block; }
+        .server-status.ok { background: #bbf7d0; color: #166534; }
+        .server-status.fail { background: #fecaca; color: #991b1b; }
+        .critical-list { margin-top: 0.5rem; padding-left: 1.2rem; }
+        .critical-list li { color: #991b1b; margin: 0.2rem 0; }
+        .server-extra-warnings { margin-top: 0.5rem; padding-left: 1.2rem; }
+        .server-extra-warnings li { color: #92400e; margin: 0.2rem 0; }
+        .global-status { font-size: 1rem; font-weight: bold; padding: 0.5rem 1rem; border-radius: 16px; margin-bottom: 0.5rem; }
+        .global-status.ok { background: #bbf7d0; color: #166534; }
+        .global-status.fail { background: #fecaca; color: #991b1b; }
+        .client-results-block { margin-top: 1.5rem; border-top: 2px solid #e2e8f0; padding-top: 1rem; }
+        .client-results-block .client-header-result { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: #f1f5f9; padding: 0.4rem 1rem; border-radius: 20px; margin: 1rem 0 0.5rem 0; }
+        .client-results-block .client-header-result h3 { margin: 0; font-size: 1.1rem; }
+        .client-results-block .client-header-result .toggle-icon { font-size: 0.9rem; transition: transform 0.2s; margin-left: 0.5rem; }
+        .client-results-block .client-header-result .toggle-icon.collapsed { transform: rotate(-90deg); }
+        .client-results-block .client-content { overflow: hidden; transition: max-height 0.3s ease; max-height: 2000px; }
+        .client-results-block .client-content.hidden { max-height: 0; padding: 0; margin: 0; }
+        .role-badge { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 0.15rem 0.6rem; border-radius: 10px; margin-right: 0.5rem; }
+        .role-badge.db { background: #dbeafe; color: #1e40af; }
+        .role-badge.balancer { background: #fef3c7; color: #92400e; }
+        .role-badge.app { background: #dcfce7; color: #166534; }
+        .topology-info { background: #eff6ff; border-left: 6px solid #3b82f6; padding: 0.9rem 1.2rem; margin-top: 1rem; border-radius: 16px; font-size: 0.9rem; color: #1e3a8a; }
+        .topology-info strong { color: #1e3a8a; }
+        .topology-info .user-math { font-family: 'Courier New', monospace; background: #dbeafe; padding: 0.15rem 0.5rem; border-radius: 6px; font-size: 0.85rem; }
         @media (max-width: 780px) {
-            .card {
-                padding: 1.2rem;
-            }
-            .admin-btn {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
-            .col {
-                min-width: 100%;
-            }
-            .client-os-section table {
-                width: 100%;
-                display: block;
-                overflow-x: auto;
-            }
-            .col table {
-                width: 100%;
-            }
-            .col td {
-                word-break: break-word;
-            }
-            .client-os-section table {
-                width: 100%;
-            }
+            .card { padding: 1.2rem; }
+            .admin-btn { padding: 6px 12px; font-size: 0.8rem; }
+            .col { min-width: 100%; }
+            .client-os-section table { width: 100%; display: block; overflow-x: auto; }
+            .col table { width: 100%; }
+            .col td { word-break: break-word; }
+            .client-os-section table { width: 100%; }
         }
     </style>
 </head>
@@ -650,31 +134,30 @@
         <div class="flex-row">
             <div class="input-group"><label>📦 Версия Платформы</label><select id="platformVersion"></select></div>
             <div class="input-group"><label>🖥️ Режим развертывания</label><select id="deployMode"><option value="full">Полный контур СУ НТД (типовой)</option><option value="reference">Только Справочная система (облегченный)</option></select></div>
-            <div class="input-group"><label>🧑‍ Количество одновременных пользователей</label><input type="number" id="userCount" value="150" step="1" min="1"></div>
+            <div class="input-group"><label>🧑 Количество одновременных пользователей</label><input type="number" id="userCount" value="150" step="1" min="1"></div>
             <div class="input-group"><label>📄 Объем документов в БД (млн)</label><input type="number" id="docCount" value="2.5" step="0.5" min="0"></div>
         </div>
-        <div class="flex-row" style="margin-top:1rem">
-            <div class="input-group"><label>🖥️ Сервер Платформы</label><select id="platformServerSelect"><option value="">— не выбрано —</option></select></div>
-            <div class="input-group"><label>🗄️ Сервер Базы данных</label><select id="dbServerSelect"><option value="">— не выбрано —</option></select></div>
-        </div>
+        <div class="topology-info" id="topologyInfo"></div>
     </div>
 
     <div class="card" id="serversCard">
-        <h2>🖧 Серверы</h2>
+        <h2>🖧 Серверы (топология)</h2>
+        <div class="note" style="margin-bottom:1rem;">
+            📐 Состав серверов формируется автоматически по правилу:<br>
+            • <strong>1 сервер СУБД</strong> · <strong>1 сервер-балансировщик</strong> · <strong>N серверов приложений</strong>, где <em>N = ⌈пользователи / 300⌉</em>.<br>
+            Вы можете скорректировать <strong>аппаратные характеристики</strong> любого сервера — они сохраняются при изменении количества пользователей.
+        </div>
         <div id="serversContainer">
             <div class="servers-list" id="serversList"></div>
-            <button id="addServerBtn" class="btn-small" style="background:#2c7da0; color:white; margin-top:0.5rem;">+ Добавить сервер</button>
         </div>
     </div>
 
     <div class="card">
         <h2>🔌 Подключаемые подсистемы и модули</h2>
         <div class="subsystems-list" id="subsystemsContainer"></div>
-        <div style="margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <button id="autoAssignBtn" class="btn-small" style="background:#2c7da0; color:white;">Автораспределение</button>
-            <span class="helper-text" style="display:inline-block; margin-left:0.5rem;">Распределяет выбранные подсистемы по серверам (без учёта характеристик серверов). Для точной настройки распределите вручную.</span>
-        </div>
-        <div class="note">💡 <strong>Правило:</strong> если подсистема требует больше ресурсов, чем Платформа — итоговые требования повышаются.<br>📋 <strong>Детали:</strong> специфические требования выбранных подсистем отображаются в отдельном сворачиваемом блоке после расчета.</div>
+        <div class="note">💡 <strong>Правило:</strong> если подсистема требует больше ресурсов, чем Платформа — итоговые требования повышаются.<br>
+        🔀 <strong>Топология:</strong> все выбранные подсистемы работают на <em>каждом</em> сервере приложений (балансировщик может направить любого пользователя на любой сервер).<br>
+        📋 <strong>Детали:</strong> специфические требования выбранных подсистем отображаются в отдельном сворачиваемом блоке после расчета.</div>
     </div>
 
     <div style="text-align:right"><button id="calcBtn">🧮 Рассчитать требования →</button></div>
@@ -738,70 +221,104 @@
     let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     let selectedSubsystems = new Set();
 
-    // ---------- ФУНКЦИИ РАБОТЫ С СЕРВЕРАМИ ----------
+    // ---------- ТОПОЛОГИЯ СЕРВЕРОВ (НОВАЯ ЛОГИКА) ----------
+    const USERS_PER_APP_SERVER = 300;
+
+    function getRequiredAppServerCount() {
+        const users = parseInt(document.getElementById('userCount')?.value, 10) || 0;
+        return Math.max(1, Math.ceil(users / USERS_PER_APP_SERVER));
+    }
+
+    function makeDefaultServer(name, role, index) {
+        if (role === 'db') {
+            return { name, role, index: 0, type:'physical', os:'linux_astra', cpu_cores:8, cpu_freq_ghz:2.7, ram_gb:32, disk_gb:500, network_gbit:10 };
+        }
+        if (role === 'balancer') {
+            return { name, role, index: 0, type:'physical', os:'linux_astra', cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:8, disk_gb:60, network_gbit:10 };
+        }
+        // app
+        return { name, role, index, type:'physical', os:'win2019', cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_gb:100, network_gbit:1 };
+    }
+
+    function ensureServerTopology() {
+        const appCount = getRequiredAppServerCount();
+        const existing = Array.isArray(config.servers) ? config.servers : [];
+
+        const result = [];
+
+        // 1. СУБД
+        let db = existing.find(s => s.role === 'db');
+        if (!db) db = makeDefaultServer('Сервер СУБД', 'db');
+        db.name = 'Сервер СУБД';
+        db.role = 'db';
+        db.index = 0;
+        result.push(db);
+
+        // 2. Балансировщик
+        let bal = existing.find(s => s.role === 'balancer');
+        if (!bal) bal = makeDefaultServer('Сервер-балансировщик', 'balancer');
+        bal.name = 'Сервер-балансировщик';
+        bal.role = 'balancer';
+        bal.index = 0;
+        result.push(bal);
+
+        // 3. Серверы приложений
+        for (let i = 1; i <= appCount; i++) {
+            let app = existing.find(s => s.role === 'app' && s.index === i);
+            if (!app) app = makeDefaultServer(`Сервер приложений ${i}`, 'app', i);
+            app.name = `Сервер приложений ${i}`;
+            app.role = 'app';
+            app.index = i;
+            result.push(app);
+        }
+
+        config.servers = result;
+        config.selectedDbServer = db.name;
+        config.selectedPlatformServer = ''; // платформа теперь распределена по всем серверам приложений
+    }
+
     function getServers() { return config.servers || []; }
     function getServerNames() { return getServers().map(s => s.name); }
+    function getAppServers() { return getServers().filter(s => s.role === 'app'); }
+    function getDbServer() { return getServers().find(s => s.role === 'db'); }
+    function getBalancerServer() { return getServers().find(s => s.role === 'balancer'); }
 
-    function generateServerName() {
-        let num = 1;
-        const names = getServerNames();
-        while (names.includes(`Сервер ${num}`)) num++;
-        return `Сервер ${num}`;
+    function getRoleBadge(role) {
+        if (role === 'db') return '<span class="role-badge db">🗄️ СУБД</span>';
+        if (role === 'balancer') return '<span class="role-badge balancer">⚖️ Балансировщик</span>';
+        if (role === 'app') return '<span class="role-badge app">🖥️ Приложение</span>';
+        return '';
     }
 
-    function addServer() {
-        const name = generateServerName();
-        config.servers.push({
-            name: name,
-            type: 'physical',
-            os: 'win2019',
-            cpu_cores: 4,
-            cpu_freq_ghz: 2.7,
-            ram_gb: 16,
-            disk_gb: 50,
-            network_gbit: 1
-        });
-        if (!config.selectedPlatformServer) config.selectedPlatformServer = name;
-        if (!config.selectedDbServer) config.selectedDbServer = name;
-        renderAll();
-    }
-
-    function removeServer(name) {
-        config.servers = config.servers.filter(s => s.name !== name);
-        if (config.selectedPlatformServer === name) config.selectedPlatformServer = "";
-        if (config.selectedDbServer === name) config.selectedDbServer = "";
-        for (let subId in config.subsystemAssignments) {
-            if (config.subsystemAssignments[subId] === name) delete config.subsystemAssignments[subId];
-        }
-        renderAll();
-    }
-
-    function updateServer(name, newData) {
-        const server = config.servers.find(s => s.name === name);
-        if (server) {
-            if (newData.name && newData.name !== name) {
-                for (let subId in config.subsystemAssignments) {
-                    if (config.subsystemAssignments[subId] === name) {
-                        config.subsystemAssignments[subId] = newData.name;
-                    }
-                }
-                if (config.selectedPlatformServer === name) config.selectedPlatformServer = newData.name;
-                if (config.selectedDbServer === name) config.selectedDbServer = newData.name;
-                if (config.resultCollapsed[name] !== undefined) {
-                    config.resultCollapsed[newData.name] = config.resultCollapsed[name];
-                    delete config.resultCollapsed[name];
-                }
-            }
-            Object.assign(server, newData);
-            renderAll();
-        }
+    function getRoleLabel(role) {
+        if (role === 'db') return '🗄️ СУБД';
+        if (role === 'balancer') return '⚖️ Балансировщик';
+        if (role === 'app') return '🖥️ Приложение';
+        return '';
     }
 
     // ---------- ОТОБРАЖЕНИЕ ----------
     function renderAll() {
+        ensureServerTopology();
         renderServers();
         renderSubsystems();
-        renderServerSelects();
+        updateTopologyInfo();
+    }
+
+    function updateTopologyInfo() {
+        const el = document.getElementById('topologyInfo');
+        if (!el) return;
+        const users = parseInt(document.getElementById('userCount').value, 10) || 0;
+        const appCount = getRequiredAppServerCount();
+        const usersPerApp = Math.ceil(users / appCount);
+        el.innerHTML = `
+            <strong>🧩 Топология многосерверной установки (автоматически):</strong><br>
+            • <strong>Сервер СУБД</strong> — 1 шт. (хранение данных)<br>
+            • <strong>Сервер-балансировщик</strong> — 1 шт. (распределяет пользователей между серверами приложений)<br>
+            • <strong>Серверы приложений</strong> — <strong>${appCount}</strong> шт.&nbsp;
+            <span class="user-math">⌈ ${users} / 300 ⌉ = ${appCount}</span>&nbsp;
+            <span style="font-size:0.85rem; color:#475569;">≈ ${usersPerApp} польз. на сервер (лимит: 300)</span>
+        `;
     }
 
     function renderServers() {
@@ -809,7 +326,7 @@
         if (!container) return;
         const servers = getServers();
         if (servers.length === 0) {
-            container.innerHTML = '<div style="color:#64748b; font-size:0.9rem;">Серверы не добавлены. Добавьте сервер для распределения подсистем.</div>';
+            container.innerHTML = '<div style="color:#64748b; font-size:0.9rem;">Топология ещё не сформирована.</div>';
             return;
         }
         let html = '';
@@ -831,14 +348,14 @@
             html += `<div class="server-item" data-server="${s.name}">
                         <div class="server-header">
                             <strong>
-                                <input type="text" class="server-name-input" value="${s.name}" style="font-size:1rem; font-weight:bold; border:none; background:transparent; width:auto; min-width:100px; padding:0.2rem 0.4rem; border-bottom:1px dashed #94a3b8;">
+                                ${getRoleBadge(s.role)}
+                                <input type="text" class="server-name-input" value="${s.name}" readonly style="font-size:1rem; font-weight:bold; border:none; background:transparent; width:auto; min-width:100px; padding:0.2rem 0.4rem; border-bottom:1px dashed #94a3b8; cursor:default;">
                             </strong>
                             <div>
                                 <select class="server-type-select" style="width:auto; padding:0.2rem 0.4rem; border-radius:8px; border:1px solid #cbd5e1;">
                                     <option value="physical" ${s.type==='physical'?'selected':''}>Физический</option>
                                     <option value="virtual" ${s.type==='virtual'?'selected':''}>Виртуальный</option>
                                 </select>
-                                <button class="btn-small btn-danger remove-server" data-name="${s.name}">Удалить</button>
                             </div>
                         </div>
                         <div class="server-details">
@@ -856,28 +373,14 @@
         });
         container.innerHTML = html;
 
-        container.querySelectorAll('.remove-server').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const name = btn.dataset.name;
-                if (confirm(`Удалить сервер "${name}"?`)) removeServer(name);
-            });
-        });
         container.querySelectorAll('.update-server').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const name = btn.dataset.name;
                 const item = btn.closest('.server-item');
-                const newName = item.querySelector('.server-name-input').value.trim();
-                if (!newName) { alert('Название сервера не может быть пустым.'); return; }
-                if (newName !== name && getServers().some(s => s.name === newName)) {
-                    alert(`Сервер с именем "${newName}" уже существует.`);
-                    return;
-                }
                 const details = item.querySelector('.server-details');
                 if (!details) return;
                 const newData = {
-                    name: newName,
                     type: item.querySelector('.server-type-select').value,
                     os: details.querySelector('.server-os-select').value,
                     cpu_cores: parseInt(details.querySelector('.server-cpu-cores').value) || 0,
@@ -889,25 +392,15 @@
                 updateServer(name, newData);
             });
         });
-        container.querySelectorAll('.server-name-input').forEach(inp => {
-            inp.addEventListener('change', function() {
-                const btn = this.closest('.server-item').querySelector('.update-server');
-                if (btn) btn.click();
-            });
-        });
     }
 
-    function renderServerSelects() {
-        const platformSelect = document.getElementById('platformServerSelect');
-        const dbSelect = document.getElementById('dbServerSelect');
-        const serverNames = getServerNames();
-        const optionsHtml = serverNames.map(name => `<option value="${name}">${name}</option>`).join('');
-        platformSelect.innerHTML = `<option value="">— не выбрано —</option>` + optionsHtml;
-        platformSelect.value = config.selectedPlatformServer || '';
-        dbSelect.innerHTML = `<option value="">— не выбрано —</option>` + optionsHtml;
-        dbSelect.value = config.selectedDbServer || '';
-        platformSelect.onchange = function() { config.selectedPlatformServer = this.value; };
-        dbSelect.onchange = function() { config.selectedDbServer = this.value; };
+    function updateServer(name, newData) {
+        const server = config.servers.find(s => s.name === name);
+        if (server) {
+            Object.assign(server, newData);
+            renderAll();
+            calculateWithoutScroll();
+        }
     }
 
     function renderSubsystems() {
@@ -917,7 +410,6 @@
         const currentVersion = document.getElementById('platformVersion').value;
         const base = config.platformReqs[currentVersion];
         if (!base) return;
-        const serverNames = getServerNames();
         config.subsystems.forEach(sub => {
             const wrapper = document.createElement('div');
             wrapper.className = 'subsystem-item';
@@ -929,12 +421,8 @@
             cb.addEventListener('change', () => {
                 if (cb.checked) {
                     selectedSubsystems.add(sub.id);
-                    if (serverNames.length > 0 && !config.subsystemAssignments[sub.id]) {
-                        config.subsystemAssignments[sub.id] = serverNames[0];
-                    }
                 } else {
                     selectedSubsystems.delete(sub.id);
-                    delete config.subsystemAssignments[sub.id];
                 }
                 renderSubsystems();
                 calculateWithoutScroll();
@@ -953,51 +441,8 @@
             label.innerHTML = `${sub.name} <span style="font-size:0.7rem; color:#4b5563;">(требует: ${diffText})</span>`;
             wrapper.appendChild(cb);
             wrapper.appendChild(label);
-
-            if (serverNames.length > 0) {
-                const select = document.createElement('select');
-                select.className = 'server-select';
-                select.dataset.subId = sub.id;
-                const currentAssignment = config.subsystemAssignments[sub.id] || '';
-                const noneOption = document.createElement('option');
-                noneOption.value = '';
-                noneOption.textContent = '— не выбрано —';
-                select.appendChild(noneOption);
-                serverNames.forEach(sname => {
-                    const opt = document.createElement('option');
-                    opt.value = sname;
-                    opt.textContent = sname;
-                    if (sname === currentAssignment) opt.selected = true;
-                    select.appendChild(opt);
-                });
-                select.addEventListener('change', (e) => {
-                    const val = e.target.value;
-                    if (val) config.subsystemAssignments[sub.id] = val;
-                    else delete config.subsystemAssignments[sub.id];
-                });
-                wrapper.appendChild(select);
-            }
             container.appendChild(wrapper);
         });
-    }
-
-    document.getElementById('addServerBtn').addEventListener('click', addServer);
-    document.getElementById('autoAssignBtn').addEventListener('click', autoAssignSubsystems);
-
-    function autoAssignSubsystems() {
-        const serverNames = getServerNames();
-        if (serverNames.length === 0) { alert('Сначала добавьте хотя бы один сервер.'); return; }
-        let primary = serverNames.find(name => name.toLowerCase().includes('платформа'));
-        if (!primary) primary = serverNames[0];
-        for (let sub of config.subsystems) {
-            if (selectedSubsystems.has(sub.id)) {
-                config.subsystemAssignments[sub.id] = primary;
-            } else {
-                delete config.subsystemAssignments[sub.id];
-            }
-        }
-        renderAll();
-        calculateWithoutScroll();
     }
 
     // ---------- ЗАГРУЗКА/СОХРАНЕНИЕ ----------
@@ -1024,17 +469,30 @@
         location.reload();
     }
 
+    function migrateConfig() {
+        // Миграция старых конфигов: если серверы без role — сбрасываем топологию
+        if (Array.isArray(config.servers) && config.servers.length > 0) {
+            const hasRoles = config.servers.some(s => s && s.role);
+            if (!hasRoles) {
+                config.servers = [];
+            }
+        } else {
+            config.servers = [];
+        }
+        // Per-server назначения подсистем больше не используются
+        config.subsystemAssignments = {};
+    }
+
     function loadConfig() {
         const saved = localStorage.getItem('suntd_calculator_config');
         if (saved) {
             try { config = deepMerge(DEFAULT_CONFIG, JSON.parse(saved)); } catch(e) { console.warn(e); }
         }
+        migrateConfig();
         selectedSubsystems.clear();
-        for (let sub of config.subsystems) {
-            if (config.subsystemAssignments[sub.id] !== undefined) {
-                selectedSubsystems.add(sub.id);
-            }
-        }
+        // Восстанавливаем выбор подсистем: если подсистема была в старых assignments — считаем выбранной
+        // (для обратной совместимости старых сохранений)
+        // По умолчанию ничего не выбрано.
         applyConfigToUI();
     }
 
@@ -1049,8 +507,6 @@
             platformSelect.appendChild(option);
         }
         renderAll();
-        document.getElementById('platformServerSelect').value = config.selectedPlatformServer || '';
-        document.getElementById('dbServerSelect').value = config.selectedDbServer || '';
     }
 
     // ---------- ОСНОВНЫЕ ФУНКЦИИ РАСЧЁТА ----------
@@ -1101,21 +557,11 @@
         const reqDisk = diskMin || 0;
         const reqNetwork = 1;
 
-        if (server.cpu_cores < reqCores) {
-            errors.push(`Недостаточно ядер CPU: требуется ${reqCores}, у сервера ${server.cpu_cores}`);
-        }
-        if (server.cpu_freq_ghz < reqFreq) {
-            errors.push(`Недостаточная частота CPU: требуется ${reqFreq} ГГц, у сервера ${server.cpu_freq_ghz} ГГц`);
-        }
-        if (server.ram_gb < reqRam) {
-            errors.push(`Недостаточно ОЗУ: требуется ${reqRam} ГБ, у сервера ${server.ram_gb} ГБ`);
-        }
-        if (server.disk_gb < reqDisk) {
-            errors.push(`Недостаточно дискового пространства: требуется ${reqDisk} ГБ, у сервера ${server.disk_gb} ГБ`);
-        }
-        if (server.network_gbit < reqNetwork) {
-            errors.push(`Недостаточная пропускная способность сети: требуется ${reqNetwork} Гбит/с, у сервера ${server.network_gbit} Гбит/с`);
-        }
+        if (server.cpu_cores < reqCores) errors.push(`Недостаточно ядер CPU: требуется ${reqCores}, у сервера ${server.cpu_cores}`);
+        if (server.cpu_freq_ghz < reqFreq) errors.push(`Недостаточная частота CPU: требуется ${reqFreq} ГГц, у сервера ${server.cpu_freq_ghz} ГГц`);
+        if (server.ram_gb < reqRam) errors.push(`Недостаточно ОЗУ: требуется ${reqRam} ГБ, у сервера ${server.ram_gb} ГБ`);
+        if (server.disk_gb < reqDisk) errors.push(`Недостаточно дискового пространства: требуется ${reqDisk} ГБ, у сервера ${server.disk_gb} ГБ`);
+        if (server.network_gbit < reqNetwork) errors.push(`Недостаточная пропускная способность сети: требуется ${reqNetwork} Гбит/с, у сервера ${server.network_gbit} Гбит/с`);
         return errors;
     }
 
@@ -1133,11 +579,19 @@
             baseServer.cpu_freq_ghz = config.scaling.referenceModeFactor.cpu_freq_ghz;
         }
 
-        const serverNames = getServerNames();
-        if (serverNames.length === 0) {
-            alert('Добавьте хотя бы один сервер для расчёта.');
+        ensureServerTopology();
+        renderServers();
+        updateTopologyInfo();
+
+        const servers = getServers();
+        if (servers.length === 0) {
+            alert('Топология серверов не сформирована.');
             return;
         }
+
+        const appServers = getAppServers();
+        const appCount = appServers.length;
+        const usersPerApp = appCount > 0 ? Math.ceil(userCount / appCount) : userCount;
 
         let extraRamByDocs = 0;
         if (docsMillion > config.scaling.baseDocsMillion) {
@@ -1148,16 +602,37 @@
         let serversResults = [];
         let allSelectedSubs = config.subsystems.filter(sub => selectedSubsystems.has(sub.id));
 
-        for (let sname of serverNames) {
-            const server = config.servers.find(s => s.name === sname);
-            if (!server) continue;
+        for (let server of servers) {
+            const isApp = server.role === 'app';
+            const isDb = server.role === 'db';
+            const isBalancer = server.role === 'balancer';
+
+            // Назначение подсистем и количество пользователей, приходящееся на сервер
             let assignedSubs = [];
-            for (let sub of config.subsystems) {
-                if (selectedSubsystems.has(sub.id) && config.subsystemAssignments[sub.id] === sname) {
-                    assignedSubs.push(sub);
-                }
+            let effectiveUsers = userCount;
+            if (isApp) {
+                assignedSubs = allSelectedSubs;
+                effectiveUsers = usersPerApp;
             }
-            let serverReqs = aggregateServerReqs(baseServer, assignedSubs.map(s => s.id));
+
+            // Базовые требования для роли
+            let roleBase = { ...baseServer };
+            if (isBalancer) {
+                roleBase = {
+                    ...baseServer,
+                    cpu_cores: Math.max(2, Math.min(baseServer.cpu_cores, 4)),
+                    ram_gb: Math.max(4, Math.ceil(baseServer.ram_gb / 2)),
+                    disk_free_gb_base: 50,
+                    network_gbit: 1
+                };
+            } else if (isDb) {
+                roleBase = {
+                    ...baseServer,
+                    disk_free_gb_base: Math.max(baseServer.disk_free_gb_base || 50, 200)
+                };
+            }
+
+            let serverReqs = aggregateServerReqs(roleBase, assignedSubs.map(s => s.id));
             let finalRamMin = serverReqs.ram_gb + extraRamByDocs;
 
             let subsystemCount = assignedSubs.length;
@@ -1167,12 +642,12 @@
                 subDiskMult = config.scaling.subsystemDiskMultiplier;
             }
             finalRamMin = Math.ceil(finalRamMin * subRamMult);
-            let diskMin = Math.ceil(calcDiskSpace(baseServer.disk_free_gb_base, docsMillion) * subDiskMult);
+            let diskMin = Math.ceil(calcDiskSpace(serverReqs.disk_free_gb_base || baseServer.disk_free_gb_base, docsMillion) * subDiskMult);
             const diskRecommended = diskMin + config.scaling.diskRecommendedPadding;
 
             let userTier = null, ramUserMult = 1, extraCores = 0, targetFreq = null;
             for (let tier of config.scaling.userTiers) {
-                if (userCount >= tier.min && (tier.max === null || userCount <= tier.max)) {
+                if (effectiveUsers >= tier.min && (tier.max === null || effectiveUsers <= tier.max)) {
                     userTier = tier;
                     ramUserMult = tier.ramMultiplier;
                     extraCores = tier.extraCores;
@@ -1189,9 +664,19 @@
             const resourceErrors = checkServerResources(server, serverReqs, finalRamMin, diskMin);
             const osCheck = checkOsCompatibilityForServer(server);
             let extraWarnings = [];
-            if (!osCheck.compatible) {
-                extraWarnings.push(`ОС: ${osCheck.message}`);
+            if (!osCheck.compatible) extraWarnings.push(`ОС: ${osCheck.message}`);
+
+            if (isApp) {
+                extraWarnings.push(`Сервер приложений №${server.index} обслуживает до ${usersPerApp} пользователей (лимит: ${USERS_PER_APP_SERVER} на сервер). Всего серверов приложений: ${appCount}.`);
+                extraWarnings.push(`На сервере развёрнуты все выбранные подсистемы (${allSelectedSubs.length} шт.) — балансировщик может направить пользователя на любой сервер.`);
             }
+            if (isDb) {
+                extraWarnings.push(`Сервер СУБД обслуживает все ${userCount} пользователей (запросы проходят через балансировщик и серверы приложений).`);
+            }
+            if (isBalancer) {
+                extraWarnings.push(`Балансировщик распределяет до ${userCount} пользователей между ${appCount} сервером(ами) приложений.`);
+            }
+
             if (server.type === 'virtual') {
                 extraWarnings.push("Виртуальный сервер: критически важно настроить энергопотребление (BIOS → максимальная производительность, план питания хоста и гостя — «Высокая производительность»). Разместите тома БД на виртуальном диске, подключенном как локальный (не по сети!). Сетевое подключение томов БД снижает производительность на 20-30% даже на 10 Гбит/с.");
             } else {
@@ -1199,8 +684,9 @@
             }
 
             serversResults.push({
-                name: sname,
+                name: server.name,
                 server: server,
+                role: server.role,
                 assignedSubs: assignedSubs,
                 minReqs: serverReqs,
                 finalRamMin: finalRamMin,
@@ -1215,46 +701,46 @@
 
         // Глобальные предупреждения (общие)
         let warnings = [];
+        warnings.push(`🧩 Топология: 1 СУБД + 1 балансировщик + ${appCount} сервер(ов) приложений (${userCount} польз. / ${USERS_PER_APP_SERVER} = ${appCount}).`);
+
+        // Tier info теперь для серверов приложений не срабатывает (>300 пользователей на сервер невозможно по правилу),
+        // но для СУБД — срабатывает, если всего пользователей больше порога.
         for (let tier of config.scaling.userTiers) {
             if (userCount >= tier.min && (tier.max === null || userCount <= tier.max)) {
-                let msg = `Количество пользователей (${userCount}) в диапазоне ${tier.min}-${tier.max || '∞'}. Рекомендуется увеличить RAM на ${Math.round((tier.ramMultiplier-1)*100)}% и добавить ${tier.extraCores} ядра CPU.${tier.targetFreq ? ` Частота до ${tier.targetFreq} ГГц.` : ''}`;
+                let msg = `Количество пользователей всего (${userCount}) в диапазоне ${tier.min}-${tier.max || '∞'}. На сервер СУБД применяется: RAM ×${tier.ramMultiplier}, +${tier.extraCores} ядра CPU.${tier.targetFreq ? ` Частота до ${tier.targetFreq} ГГц.` : ''}`;
                 warnings.push(`👥 ${msg}`);
                 break;
             }
         }
         if (docsMillion > config.scaling.baseDocsMillion) {
-            warnings.push(`📚 Объем документов ${docsMillion} млн (>${config.scaling.baseDocsMillion} млн). Автоматически добавлено +${extraRamByDocs} ГБ ОЗУ к минимальным требованиям (правило: +4 ГБ на каждые 3 млн док.).`);
+            warnings.push(`📚 Объем документов ${docsMillion} млн (>${config.scaling.baseDocsMillion} млн). Автоматически добавлено +${extraRamByDocs} ГБ ОЗУ к минимальным требованиям каждого сервера (правило: +4 ГБ на каждые 3 млн док.).`);
         }
 
         if (allSelectedSubs.some(sub => sub.id === 'soglasovanie')) {
             let soglasovanieOnWin = false;
             for (let sub of allSelectedSubs) {
                 if (sub.id === 'soglasovanie') {
-                    const assignedServer = config.servers.find(s => s.name === config.subsystemAssignments[sub.id]);
-                    if (assignedServer && (assignedServer.os || 'win2019').startsWith('win')) {
+                    // Проверяем, есть ли среди серверов приложений хотя бы один Windows
+                    if (appServers.some(s => (s.os || 'win2019').startsWith('win'))) {
                         soglasovanieOnWin = true;
                         break;
                     }
                 }
             }
             if (!soglasovanieOnWin) {
-                warnings.push("⚠️ Подсистема «Согласование НД» требует Windows Server (серверная часть). Назначьте её на сервер с Windows.");
+                warnings.push("⚠️ Подсистема «Согласование НД» требует Windows Server (серверная часть). Среди серверов приложений нет ни одного с Windows.");
             }
         }
         if (allSelectedSubs.some(sub => sub.id === 'kassist4')) {
-            for (let sub of allSelectedSubs) {
-                if (sub.id === 'kassist4') {
-                    const assignedServer = config.servers.find(s => s.name === config.subsystemAssignments[sub.id]);
-                    if (assignedServer && (assignedServer.os || 'win2019').startsWith('win')) {
-                        warnings.push("⚠️ Подсистема «кАссист 4» на сервере может работать под Windows, но клиентская часть ориентирована только на Linux. Убедитесь в совместимости.");
-                    }
-                }
+            if (appServers.some(s => (s.os || 'win2019').startsWith('win'))) {
+                warnings.push("⚠️ Подсистема «кАссист 4» на сервере может работать под Windows, но клиентская часть ориентирована только на Linux. Убедитесь в совместимости.");
             }
         }
 
+        // Порог количества подсистем применяется ко всем серверам приложений одинаково
         let anyServerHasReserve = serversResults.some(r => r.subsystemCount >= config.scaling.subsystemCountThreshold);
         if (anyServerHasReserve) {
-            warnings.push(`🔧 На некоторых серверах выбрано 5 и более подсистем. Применен коэффициент резервирования: RAM +${Math.round((config.scaling.subsystemRamMultiplier-1)*100)}%, диск +${Math.round((config.scaling.subsystemDiskMultiplier-1)*100)}% к минимальным требованиям.`);
+            warnings.push(`🔧 На серверах приложений выбрано ${config.scaling.subsystemCountThreshold} и более подсистем. Применен коэффициент резервирования: RAM +${Math.round((config.scaling.subsystemRamMultiplier-1)*100)}%, диск +${Math.round((config.scaling.subsystemDiskMultiplier-1)*100)}% к минимальным требованиям.`);
         }
 
         // Глобальный статус
@@ -1269,7 +755,15 @@
         // Отображение результатов для серверов
         const resultsContainer = document.getElementById('serverResultsContainer');
         resultsContainer.innerHTML = '';
-        serversResults.forEach((res) => {
+
+        // Порядок: СУБД → Балансировщик → Приложения
+        const orderedResults = [
+            ...serversResults.filter(r => r.role === 'db'),
+            ...serversResults.filter(r => r.role === 'balancer'),
+            ...serversResults.filter(r => r.role === 'app')
+        ];
+
+        orderedResults.forEach((res) => {
             const serverDiv = document.createElement('div');
             serverDiv.className = 'server-results';
 
@@ -1277,7 +771,8 @@
             header.className = 'server-header-result';
             const isCollapsed = config.resultCollapsed[res.name] || false;
             const icon = isCollapsed ? '▶' : '▼';
-            header.innerHTML = `<h3>🖥️ Сервер: ${res.name} ${res.name === config.selectedPlatformServer ? '(Платформа)' : ''}${res.name === config.selectedDbServer ? '(БД)' : ''}</h3>
+            const roleLabel = getRoleLabel(res.role);
+            header.innerHTML = `<h3>${roleLabel} — ${res.name}${res.role === 'app' ? ` · до ${usersPerApp} польз.` : ''}</h3>
                                 <span class="toggle-icon ${isCollapsed?'collapsed':''}" style="cursor:pointer;">${icon}</span>`;
             header.addEventListener('click', () => {
                 config.resultCollapsed[res.name] = !config.resultCollapsed[res.name];
@@ -1328,7 +823,7 @@
                 { param: "Процессор (ядра/частота)", minVal: `${res.minReqs.cpu_cores} ядер, ${res.minReqs.cpu_freq_ghz} ГГц`, recVal: `${res.recommended.cpu_cores} ядер, ${res.recommended.cpu_freq_ghz} ГГц` },
                 { param: "Оперативная память (RAM)", minVal: `${res.finalRamMin} ГБ`, recVal: `${res.recommended.ram_gb} ГБ` },
                 { param: "Дисковое пространство (свободно)", minVal: `${res.diskMin} ГБ (SSD обязательно)`, recVal: `${res.diskRecommended} ГБ (SSD, RAID по возможности)` },
-                { param: "Сетевой адаптер", minVal: "1 Гбит/с и выше", recVal: "Рекомендуется 10 Гбит/с при большой нагрузке" },
+                { param: "Сетевой адаптер", minVal: "1 Гбит/с и выше", recVal: res.role === 'db' || res.role === 'balancer' ? "Рекомендуется 10 Гбит/с" : "Рекомендуется 10 Гбит/с при большой нагрузке" },
                 { param: "Операционная система", minVal: `64-разрядная: Windows Server 2012/2016/2019/2022/2025 или Linux (ядро 3.0+ / Астра / Альт / РЕД / Атлант)`, recVal: `—` },
                 { param: "Настройки энергопотребления", minVal: "BIOS: макс. производительность; ОС: план «Высокая производительность»", recVal: res.server.type === 'virtual' ? "Хост + гость — одинаковый план макс. производительности" : "—" }
             ];
@@ -1341,7 +836,7 @@
             resultsContainer.appendChild(serverDiv);
         });
 
-        // ---- Клиентские требования (новый блок) ----
+        // ---- Клиентские требования ----
         const clientBlock = document.getElementById('clientResultsBlock');
         const winReqs = config.clientReqs.windows;
         const linReqs = config.clientReqs.linux;
@@ -1429,7 +924,13 @@
             detailsBlock.style.display = 'none';
         }
 
-        document.getElementById('scalingNote').innerHTML = `<strong>📐 Примечания по расчету:</strong><br>• Базовые требования сервера (минимальные): ${baseServer.cpu_cores} ядер / ${baseServer.cpu_freq_ghz} ГГц, ОЗУ ${baseServer.ram_gb} ГБ (до масштабирования).<br>• Диск: минимальный свободный объем рассчитывается с учетом резервирования для каждого сервера. Рекомендуется SSD.<br>• ${deployMode === 'reference' ? 'Режим "Только Справочная система" понижает базовые требования (ОЗУ 8 ГБ, 2 ядра).' : 'Полный контур СУНТД — штатные требования 16 ГБ/4 ядра.'}<br>• Для корректной работы обязательно соблюдать настройки энергопотребления (BIOS/ОС) и при виртуализации размещать БД локально.`;
+        document.getElementById('scalingNote').innerHTML = `<strong>📐 Примечания по расчету:</strong><br>
+            • <strong>Топология:</strong> 1 СУБД + 1 балансировщик + ${appCount} сервер(ов) приложений (по правилу «${USERS_PER_APP_SERVER} польз. на 1 сервер»).<br>
+            • Базовые требования сервера приложений (минимальные): ${baseServer.cpu_cores} ядер / ${baseServer.cpu_freq_ghz} ГГц, ОЗУ ${baseServer.ram_gb} ГБ (до масштабирования).<br>
+            • Диск: минимальный свободный объем рассчитывается с учетом резервирования для каждого сервера. Рекомендуется SSD.<br>
+            • ${deployMode === 'reference' ? 'Режим "Только Справочная система" понижает базовые требования (ОЗУ 8 ГБ, 2 ядра).' : 'Полный контур СУНТД — штатные требования 16 ГБ/4 ядра.'}<br>
+            • Все выбранные подсистемы работают на каждом сервере приложений (пользователь может быть направлен балансировщиком на любой сервер).<br>
+            • Для корректной работы обязательно соблюдать настройки энергопотребления (BIOS/ОС) и при виртуализации размещать БД локально.`;
 
         document.getElementById('resultPanel').style.display = 'block';
         if (doScroll) window.scrollTo({ top: document.getElementById('resultPanel').offsetTop - 20, behavior: 'smooth' });
@@ -1443,7 +944,7 @@
         let text = "=== Калькулятор ТТ СУНТД ===\n";
         text += `Версия Платформы: ${document.getElementById('platformVersion').value} | Режим: ${document.getElementById('deployMode').options[document.getElementById('deployMode').selectedIndex].text}\n`;
         text += `Пользователи: ${document.getElementById('userCount').value} | Документы: ${document.getElementById('docCount').value} млн\n`;
-        if (config.selectedPlatformServer) text += `Сервер Платформы: ${config.selectedPlatformServer}\n`;
+        text += `Топология: 1 СУБД + 1 балансировщик + ${getRequiredAppServerCount()} сервер(ов) приложений\n`;
         if (config.selectedDbServer) text += `Сервер БД: ${config.selectedDbServer}\n`;
         text += "\n--- Серверные требования ---\n";
         const serverCards = document.querySelectorAll('.server-results');
@@ -1540,7 +1041,14 @@
     });
     document.getElementById('platformVersion').addEventListener('change', () => { renderSubsystems(); calculateWithoutScroll(); });
     document.getElementById('deployMode').addEventListener('change', calculateWithoutScroll);
-    document.getElementById('userCount').addEventListener('input', calculateWithoutScroll);
+
+    // Изменение количества пользователей → пересчёт топологии + результат
+    document.getElementById('userCount').addEventListener('input', () => {
+        ensureServerTopology();
+        renderServers();
+        updateTopologyInfo();
+        calculateWithoutScroll();
+    });
     document.getElementById('docCount').addEventListener('input', calculateWithoutScroll);
 
     // ---------- АДМИН-ПАНЕЛЬ ----------
@@ -1597,6 +1105,7 @@
         <div class="admin-form-group config-block"><label>Множитель ОЗУ</label><input type="number" step="0.01" id="subsysRamMult" value="${s.subsystemRamMultiplier}"><span class="helper-text">Пример: 1.15 = увеличение на 15%</span></div>
         <div class="admin-form-group config-block"><label>Множитель диска</label><input type="number" step="0.01" id="subsysDiskMult" value="${s.subsystemDiskMultiplier}"><span class="helper-text">Пример: 1.10 = увеличение на 10%</span></div>
         <h4>Градация нагрузки по пользователям</h4>
+        <div class="note">ℹ️ В новой топологии каждый сервер приложений обслуживает не более ${USERS_PER_APP_SERVER} пользователей, поэтому градации «301+» влияют только на сервер СУБД (общее количество пользователей).</div>
         <div id="tiersContainer">${s.userTiers.map((t,i)=>`<div class="config-block" data-tier-index="${i}" style="position:relative;"><button class="btn-small btn-danger remove-tier" style="position:absolute; top:0.5rem; right:0.5rem;">Удалить диапазон</button><div><label>Нижняя граница количества пользователей (вкл.)</label><input type="number" class="tier-min" value="${t.min}"></div><div><label>Верхняя граница количества пользователей (вкл., если значение не указано - ∞)</label><input type="number" class="tier-max" value="${t.max===null?'':t.max}"></div><div><label>Множитель ОЗУ</label><input type="number" step="0.1" class="tier-ram-mult" value="${t.ramMultiplier}"></div><div><label>Добавляемых ядер CPU</label><input type="number" class="tier-cores" value="${t.extraCores}"></div><div><label>Рекомендуемая частота (ГГц)</label><input type="number" step="0.1" class="tier-freq" value="${t.targetFreq===null?'':t.targetFreq}"></div></div>`).join('')}</div>
         <button id="addTierBtn" class="btn-small">+ Добавить диапазон</button>
         <h4>Формула дискового пространства</h4>
