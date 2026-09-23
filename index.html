@@ -22,8 +22,12 @@
         .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; }
         .checkbox-group label { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: normal; cursor: pointer; }
         .subsystems-list { display: flex; flex-direction: column; gap: 0.75rem; background: #f9f9ff; padding: 1rem; border-radius: 20px; border: 1px solid #e0e7ff; }
-        .subsystem-item { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; justify-content: flex-start; }
-        .subsystem-item input { width: auto; margin-right: 4px; }
+        .subsystem-item { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; justify-content: flex-start; padding: 0.4rem 0.6rem; border-radius: 12px; }
+        .subsystem-item input[type="checkbox"] { width: auto; margin-right: 4px; }
+        .subsystem-item.required { background: #eff6ff; border: 1px solid #bfdbfe; }
+        .subsystem-item.required label { cursor: default; }
+        .req-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.55rem; border-radius: 10px; background: #1d4ed8; color: white; margin-right: 0.5rem; letter-spacing: 0.3px; }
+        .req-hint { font-size: 0.75rem; color: #1e40af; font-style: italic; margin-left: 0.4rem; }
         button { background: #2c7da0; color: white; border: none; padding: 0.8rem 2rem; font-size: 1rem; font-weight: 600; border-radius: 40px; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-top: 0.5rem; }
         button:hover { background: #1f5e7a; transform: translateY(-1px); }
         .result-section { background: #fefce8; border-left: 6px solid #eab308; }
@@ -80,7 +84,10 @@
         .server-item .server-details input, .server-item .server-details select { width: 70px; padding: 0.2rem 0.4rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.8rem; }
         .server-item .server-details select { width: auto; min-width: 100px; }
         .server-item .btn-small { margin-left: 0.5rem; }
-        .subsystem-item select { width: auto; padding: 0.2rem 0.4rem; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.8rem; margin-left: 0.5rem; }
+        .padding-row { display: flex; align-items: center; gap: 0.4rem; background: #eef6ff; border: 1px solid #bfdbfe; padding: 0.3rem 0.7rem; border-radius: 10px; }
+        .padding-row input[type="checkbox"] { width: auto; margin: 0; }
+        .padding-row .padding-value { width: 60px; }
+        .padding-row .padding-value:disabled { background: #f1f5f9; cursor: not-allowed; opacity: 0.6; }
         .server-results { margin-top: 1.5rem; border-top: 2px solid #e2e8f0; padding-top: 1rem; position: relative; }
         .server-results .server-header-result { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: #f1f5f9; padding: 0.4rem 1rem; border-radius: 20px; margin: 1rem 0 0.5rem 0; }
         .server-results .server-header-result h3 { margin: 0; font-size: 1.1rem; }
@@ -147,7 +154,7 @@
             • <strong>1 сервер СУБД</strong> (4 ядра / 16 ГБ / HDD «Данные» 1650 ГБ) — только СУБД.<br>
             • <strong>1 сервер-балансировщик</strong> (2 ядра / 4 ГБ / HDD «Приложения» 10 ГБ) — только ПО авторизации и балансировки.<br>
             • <strong>N серверов приложений</strong> (4 ядра / 16 ГБ / HDD «Приложения» 80 ГБ), где <em>N = ⌈пользователи / 300⌉</em> — на них разворачиваются подсистемы.<br>
-            Характеристики можно скорректировать — они сохраняются при изменении количества пользователей.
+            💾 <strong>Запас диска</strong> настраивается отдельно у каждого сервера — включите галочку и укажите объём.
         </div>
         <div id="serversContainer">
             <div class="servers-list" id="serversList"></div>
@@ -159,6 +166,7 @@
         <div class="subsystems-list" id="subsystemsContainer"></div>
         <div class="note">💡 <strong>Правило:</strong> если подсистема требует больше ресурсов, чем Платформа — итоговые требования повышаются (берётся максимум).<br>
         🔀 <strong>Топология:</strong> все выбранные подсистемы работают на <em>каждом</em> сервере приложений (балансировщик может направить любого пользователя на любой сервер).<br>
+        ⭐ <strong>Обязательные подсистемы</strong> (Мониторинг системы и Управление НСИ) устанавливаются автоматически и не могут быть отключены.<br>
         📋 <strong>Детали:</strong> специфические требования выбранных подсистем отображаются в отдельном сворачиваемом блоке после расчета.</div>
     </div>
 
@@ -191,18 +199,19 @@
             windows: { cpu_freq_ghz:2.0, ram_gb:4, network_mbps:100, os:"Windows 7,8,8.1,10,11 и выше (только 64-bit)", browsers:"Google Chrome, Mozilla Firefox, Microsoft Edge, Opera, Яндекс.Браузер (последние стабильные версии)" },
             linux: { cpu_freq_ghz:2.0, ram_gb:4, network_mbps:100, os:"Astra Linux Desktop 1.7+, Alt Linux Desktop 10.4+, РЕД ОС 7.3+, Ubuntu Desktop 22.04+", browsers:"Google Chrome, Mozilla Firefox, Microsoft Edge, Opera, Яндекс.Браузер (последние стабильные версии)" }
         },
+        // Обязательные подсистемы (required: true) идут первыми — устанавливаются автоматически
         subsystems: [
+            { id:"monitoring_te", name:"Техэксперт: Мониторинг системы", required:true, requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Использует СУБД Sqlite (встроенная) и Postgres (требуется дополнительная установка)."] },
+            { id:"nsi", name:"Техэксперт: Подсистема управления нормативно-справочной информацией", required:true, requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Клиент только Linux (Astra, Alt, РЕД ОС, Ubuntu).","Работа только через web-браузер."] },
             { id:"bank_docs", name:"Техэксперт: Банк документов", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Большие установки: Банк документов с операторскими местами — отдельный сервер, данные синхронизируются с СХД.","Способы авторизации: по базе пользователей, по домену (Kerberos). Для Linux только база и Kerberos.","АРМ администратора фондов работает только под Windows."] },
             { id:"arm_operator", name:"Техэксперт: АРМ оператора фондов", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Рекомендуется отдельный сервер Банка документов, единый для всех установок ПВФ.","Работа в нескольких кодвебах не поддерживается.","Клиентское приложение «Техэксперт-клиент» не используется — только web."] },
             { id:"control_nd", name:"Техэксперт: Контроль оборота НД", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Подсистемы на нескольких кодвебах можно подключить к единой СУБД PostgreSQL.","Рекомендуемое разрешение экрана клиента: не менее 1024x768."] },
             { id:"digital_cabinets", name:"Техэксперт: Цифровые кабинеты", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Одинаковые файлы настроек можно использовать на нескольких кодвебах.","Клиент — только web, разрешение экрана ≥1024x768."] },
             { id:"constructor_nd", name:"Техэксперт: Конструктор нормативных документов", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требуется СУБД MongoDB версии 4.0 и выше.","На рабочих местах: Microsoft Office 2010 SP2+ (или Мой офис), .NET Framework 4.5.2, Visual Studio Tools for Office Runtime."] },
             { id:"discussion_nd", name:"Техэксперт: Обсуждение нормативных документов", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требуется PostgreSQL 9.1+, PHP ≤5.6, Apache 2.2+.","С нескольких кодвебов подключение к одной подсистеме по единой ссылке."] },
-            { id:"monitoring_te", name:"Техэксперт: Мониторинг системы", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Использует СУБД Sqlite (встроенная) и Postgres (требуется дополнительная установка)."] },
             { id:"planning_nd", name:"Техэксперт: Планирование разработки НД", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требует PostgreSQL 10, SQLite 3.38.0.","На клиенте: Microsoft Office 2010+, Adobe Reader 10+, .NET Framework 4.6.1."] },
             { id:"kassist3", name:"Интеграционный модуль 'кАссист' (3-е поколение)", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требуется Платформа 6.4.5 или выше.","Авторизация: ключ доступа или по логину Windows.","Для сервиса Пакетная обработка файлов: .NET Framework 4.7, Microsoft Office Word/Excel 2007+.","Для сервиса Информер: .NET Framework 4.5.","Клиент поддерживает Windows, браузеры и 'Кодекс-клиент'."] },
             { id:"kassist4", name:"Интеграционный модуль 'кАссист' (4-е поколение)", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Требуется Платформа 6.4.5+.","Клиент только Linux (Astra, Alt, РЕД ОС, Ubuntu).","Интеграция с LibreOffice x64 5.1+, Р7-Офис 2024.1.2.401+ (только Редактор текста).","Отсутствует: авторазвертывание, сервис 'Информер', сервис 'кАссист:Пакетный'."] },
-            { id:"nsi", name:"Техэксперт: Подсистема управления нормативно-справочной информацией", requirements:{server:{ram_gb:16,cpu_cores:4,cpu_freq_ghz:2.7}}, extraWarnings:["Клиент только Linux (Astra, Alt, РЕД ОС, Ubuntu).","Работа только через web-браузер."] },
             { id:"soglasovanie", name:"Техэксперт: Согласование НД", requirements:{server:{ram_gb:32,cpu_cores:8,cpu_freq_ghz:2.7}}, extraWarnings:["Сервер приложений: 8 ГБ ОЗУ, СУБД: 32 ГБ ОЗУ (итоговое требование 32 ГБ, 8 ядер).","Сетевые требования: для сервера приложений 100 ГБ (диск) / для СУБД 500 ГБ RAID1 — требуется значительное дисковое пространство.","Работает только на Windows Server 2012+ (серверная часть).","Для подписания ЭП: КриптоПро CSP v4+, плагин КриптоПро ЭЦП Browser plug-in.","Веб-сервер IIS обязателен для Windows.","Клиент поддерживает Windows, Linux, браузеры на Chromium."] }
         ],
         scaling: {
@@ -226,11 +235,11 @@
     // ---------- ТОПОЛОГИЯ СЕРВЕРОВ ----------
     const USERS_PER_APP_SERVER = 300;
 
-    // Фиксированные спеки по ролям (из ТЗ)
+    // Фиксированные спеки по ролям + дефолт для запаса диска
     const ROLE_SPECS = {
-        db:       { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_gb:1650, disk_type:'data', network_gbit:10 },
-        balancer: { cpu_cores:2, cpu_freq_ghz:2.7, ram_gb:4,  disk_gb:10,   disk_type:'apps', network_gbit:10 },
-        app:      { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_gb:80,   disk_type:'apps', network_gbit:1 }
+        db:       { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_gb:1650, disk_type:'data', network_gbit:10, disk_padding_enabled:true,  disk_padding_gb:30 },
+        balancer: { cpu_cores:2, cpu_freq_ghz:2.7, ram_gb:4,  disk_gb:10,   disk_type:'apps', network_gbit:10, disk_padding_enabled:false, disk_padding_gb:0  },
+        app:      { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_gb:80,   disk_type:'apps', network_gbit:1,  disk_padding_enabled:true,  disk_padding_gb:30 }
     };
 
     function getRequiredAppServerCount() {
@@ -250,7 +259,9 @@
             ram_gb: spec.ram_gb,
             disk_gb: spec.disk_gb,
             disk_type: spec.disk_type,
-            network_gbit: spec.network_gbit
+            network_gbit: spec.network_gbit,
+            disk_padding_enabled: spec.disk_padding_enabled,
+            disk_padding_gb: spec.disk_padding_gb
         };
     }
 
@@ -259,24 +270,27 @@
         const existing = Array.isArray(config.servers) ? config.servers : [];
         const result = [];
 
-        // 1. СУБД
         let db = existing.find(s => s.role === 'db');
         if (!db) db = makeDefaultServer('Сервер СУБД', 'db');
         db.name = 'Сервер СУБД'; db.role = 'db'; db.index = 0; db.disk_type = 'data';
+        if (db.disk_padding_enabled === undefined) db.disk_padding_enabled = true;
+        if (db.disk_padding_gb === undefined) db.disk_padding_gb = 30;
         result.push(db);
 
-        // 2. Балансировщик
         let bal = existing.find(s => s.role === 'balancer');
         if (!bal) bal = makeDefaultServer('Сервер-балансировщик', 'balancer');
         bal.name = 'Сервер-балансировщик'; bal.role = 'balancer'; bal.index = 0; bal.disk_type = 'apps';
+        if (bal.disk_padding_enabled === undefined) bal.disk_padding_enabled = false;
+        if (bal.disk_padding_gb === undefined) bal.disk_padding_gb = 0;
         result.push(bal);
 
-        // 3. Серверы приложений
         for (let i = 1; i <= appCount; i++) {
             let app = existing.find(s => s.role === 'app' && s.index === i);
             if (!app) app = makeDefaultServer(`Сервер приложений ${i}`, 'app', i);
             app.name = `Сервер приложений ${i}`;
             app.role = 'app'; app.index = i; app.disk_type = 'apps';
+            if (app.disk_padding_enabled === undefined) app.disk_padding_enabled = true;
+            if (app.disk_padding_gb === undefined) app.disk_padding_gb = 30;
             result.push(app);
         }
 
@@ -354,6 +368,7 @@
         servers.forEach((s) => {
             const osSelected = s.os || 'win2019';
             const diskLabel = s.disk_type === 'data' ? '«Данные»' : '«Приложения»';
+            const paddingEnabled = s.disk_padding_enabled !== false;
             html += `<div class="server-item" data-server="${s.name}">
                         <div class="server-header">
                             <strong>
@@ -376,11 +391,29 @@
                             <label>ОЗУ (ГБ): <input type="number" step="1" class="server-ram" value="${s.ram_gb}" style="width:60px;"></label>
                             <label>Диск ${diskLabel} (ГБ, HDD): <input type="number" step="1" class="server-disk" value="${s.disk_gb}" style="width:70px;"></label>
                             <label>Сеть (Гбит/с): <input type="number" step="0.1" class="server-network" value="${s.network_gbit}" style="width:60px;"></label>
+                            <span class="padding-row">
+                                <input type="checkbox" class="server-padding-enabled" ${paddingEnabled ? 'checked' : ''} id="padding_${s.role}_${s.index}">
+                                <label for="padding_${s.role}_${s.index}" style="margin:0; font-weight:500; color:#1e40af;">+ запас диска:</label>
+                                <input type="number" step="1" class="server-padding-value padding-value" value="${s.disk_padding_gb || 0}" ${paddingEnabled ? '' : 'disabled'}>
+                                <span style="color:#1e40af; font-weight:500;">ГБ</span>
+                            </span>
                             <button class="btn-small update-server" data-name="${s.name}">Сохранить настройки</button>
                         </div>
                     </div>`;
         });
         container.innerHTML = html;
+
+        // Обработчик toggle чекбокса «+ запас диска»
+        container.querySelectorAll('.server-padding-enabled').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const row = this.closest('.padding-row');
+                const input = row.querySelector('.server-padding-value');
+                input.disabled = !this.checked;
+                if (this.checked && (!input.value || parseInt(input.value) === 0)) {
+                    input.value = 30;
+                }
+            });
+        });
 
         container.querySelectorAll('.update-server').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -389,6 +422,8 @@
                 const item = btn.closest('.server-item');
                 const details = item.querySelector('.server-details');
                 if (!details) return;
+                const paddingCb = details.querySelector('.server-padding-enabled');
+                const paddingVal = details.querySelector('.server-padding-value');
                 const newData = {
                     type: item.querySelector('.server-type-select').value,
                     os: details.querySelector('.server-os-select').value,
@@ -396,7 +431,9 @@
                     cpu_freq_ghz: parseFloat(details.querySelector('.server-cpu-freq').value) || 0,
                     ram_gb: parseInt(details.querySelector('.server-ram').value) || 0,
                     disk_gb: parseInt(details.querySelector('.server-disk').value) || 0,
-                    network_gbit: parseFloat(details.querySelector('.server-network').value) || 0
+                    network_gbit: parseFloat(details.querySelector('.server-network').value) || 0,
+                    disk_padding_enabled: paddingCb.checked,
+                    disk_padding_gb: paddingCb.checked ? (parseInt(paddingVal.value) || 0) : 0
                 };
                 updateServer(name, newData);
             });
@@ -419,23 +456,39 @@
         const currentVersion = document.getElementById('platformVersion').value;
         const base = config.platformReqs[currentVersion];
         if (!base) return;
-        config.subsystems.forEach(sub => {
+
+        // Обязательные подсистемы — первыми
+        const sortedSubs = [...config.subsystems].sort((a, b) => {
+            const ra = a.required ? 1 : 0;
+            const rb = b.required ? 1 : 0;
+            return rb - ra;
+        });
+
+        sortedSubs.forEach(sub => {
+            const isRequired = sub.required === true;
+            if (isRequired) selectedSubsystems.add(sub.id);
+
             const wrapper = document.createElement('div');
-            wrapper.className = 'subsystem-item';
+            wrapper.className = 'subsystem-item' + (isRequired ? ' required' : '');
+
             const cb = document.createElement('input');
             cb.type = 'checkbox';
             cb.id = `sub_${sub.id}`;
             cb.value = sub.id;
-            cb.checked = selectedSubsystems.has(sub.id);
-            cb.addEventListener('change', () => {
-                if (cb.checked) {
-                    selectedSubsystems.add(sub.id);
-                } else {
-                    selectedSubsystems.delete(sub.id);
-                }
-                renderSubsystems();
-                calculateWithoutScroll();
-            });
+            cb.checked = isRequired || selectedSubsystems.has(sub.id);
+            cb.disabled = isRequired;
+            if (!isRequired) {
+                cb.addEventListener('change', () => {
+                    if (cb.checked) {
+                        selectedSubsystems.add(sub.id);
+                    } else {
+                        selectedSubsystems.delete(sub.id);
+                    }
+                    renderSubsystems();
+                    calculateWithoutScroll();
+                });
+            }
+
             const label = document.createElement('label');
             label.htmlFor = `sub_${sub.id}`;
             const subReqs = sub.requirements.server;
@@ -447,7 +500,10 @@
             if (subReqs.cpu_freq_ghz !== undefined && Number(subReqs.cpu_freq_ghz) > base.cpu_freq_ghz)
                 diffParts.push(`${subReqs.cpu_freq_ghz} ГГц`);
             let diffText = diffParts.length ? diffParts.join(', ') : "базовые требования (не повышает)";
-            label.innerHTML = `${sub.name} <span style="font-size:0.7rem; color:#4b5563;">(требует: ${diffText})</span>`;
+
+            const badge = isRequired ? `<span class="req-badge">✓ Обязательно</span>` : '';
+            const hint = isRequired ? `<span class="req-hint">— устанавливается и разворачивается автоматически</span>` : '';
+            label.innerHTML = `${badge}${sub.name} <span style="font-size:0.7rem; color:#4b5563;">(требует: ${diffText})</span>${hint}`;
             wrapper.appendChild(cb);
             wrapper.appendChild(label);
             container.appendChild(wrapper);
@@ -490,6 +546,13 @@
                 if (!s.disk_type) {
                     s.disk_type = (s.role === 'db') ? 'data' : 'apps';
                 }
+                // Миграция: если полей запаса диска нет — задаём по роли
+                if (s.disk_padding_enabled === undefined) {
+                    s.disk_padding_enabled = (s.role === 'balancer') ? false : true;
+                }
+                if (s.disk_padding_gb === undefined) {
+                    s.disk_padding_gb = (s.role === 'balancer') ? 0 : 30;
+                }
             });
         }
         config.subsystemAssignments = {};
@@ -502,6 +565,9 @@
         }
         migrateConfig();
         selectedSubsystems.clear();
+        config.subsystems.forEach(sub => {
+            if (sub.required === true) selectedSubsystems.add(sub.id);
+        });
         applyConfigToUI();
     }
 
@@ -619,11 +685,9 @@
             const isDb = server.role === 'db';
             const isBalancer = server.role === 'balancer';
 
-            // Подсистемы разворачиваются ТОЛЬКО на серверах приложений
             let assignedSubs = isApp ? allSelectedSubs : [];
             let effectiveUsers = isApp ? usersPerApp : userCount;
 
-            // Базовые требования для роли (фиксированные спеки из ТЗ)
             let roleBase;
             if (isDb) {
                 roleBase = { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_free_gb_base:1650, network_gbit:1 };
@@ -640,7 +704,6 @@
             }
 
             let serverReqs = aggregateServerReqs(roleBase, assignedSubs.map(s => s.id));
-            // Документы влияют на RAM СУБД и серверов приложений, но не на балансировщик
             let serverExtraRamByDocs = isBalancer ? 0 : extraRamByDocs;
             let finalRamMin = serverReqs.ram_gb + serverExtraRamByDocs;
 
@@ -654,18 +717,20 @@
 
             let diskMin;
             if (isBalancer) {
-                // У балансировщика фиксированный HDD «Приложения» 10 ГБ — не масштабируется
                 diskMin = roleBase.disk_free_gb_base;
             } else {
                 diskMin = Math.ceil(calcDiskSpace(roleBase.disk_free_gb_base, docsMillion) * subDiskMult);
             }
-            const diskRecommended = diskMin + config.scaling.diskRecommendedPadding;
 
-            // Градации пользователей применяются ТОЛЬКО к серверам приложений.
-            // СУБД масштабируется исключительно по объёму документов (см. serverExtraRamByDocs).
-            // Балансировщик имеет фиксированные ресурсы (распределение не зависит от числа пользователей).
+            // Запас диска — отдельный для каждого сервера (настраивается в UI)
+            const serverPaddingEnabled = server.disk_padding_enabled === true;
+            const serverPaddingGb = serverPaddingEnabled ? (parseInt(server.disk_padding_gb) || 0) : 0;
+            const diskRecommended = diskMin + serverPaddingGb;
+
+            // Градации пользователей: применяются к серверам приложений и к СУБД.
+            // Балансировщик — фиксированные ресурсы.
             let userTier = null, ramUserMult = 1, extraCores = 0, targetFreq = null;
-            if (isApp) {
+            if (isApp || isDb) {
                 for (let tier of config.scaling.userTiers) {
                     if (effectiveUsers >= tier.min && (tier.max === null || effectiveUsers <= tier.max)) {
                         userTier = tier;
@@ -687,17 +752,11 @@
             let extraWarnings = [];
             if (!osCheck.compatible) extraWarnings.push(`ОС: ${osCheck.message}`);
 
-            if (isApp) {
-                // Технические характеристики и служебная информация по серверу приложений
-                // не дублируются в предупреждениях — они видны в таблице требований ниже.
-            }
             if (isDb) {
-                // Для СУБД технические характеристики оставляем как есть
                 extraWarnings.push(`Сервер СУБД: только СУБД, подсистемы не устанавливаются. HDD «Данные» ${roleBase.disk_free_gb_base} ГБ.`);
                 extraWarnings.push(`Обслуживает все ${userCount} пользователей (запросы идут через балансировщик и серверы приложений).`);
             }
             if (isBalancer) {
-                // Без указания ОС/ПО/диска — только назначение и роль
                 extraWarnings.push(`Балансировщик: только авторизация пользователей и распределение нагрузки. Подсистемы не устанавливаются.`);
                 extraWarnings.push(`Распределяет пользователей между серверами приложений. Ресурсы фиксированные и не зависят от числа пользователей, объёма документов или подсистем.`);
             }
@@ -718,6 +777,8 @@
                 diskMin: diskMin,
                 recommended: recommendedServer,
                 diskRecommended: diskRecommended,
+                diskPaddingEnabled: serverPaddingEnabled,
+                diskPaddingGb: serverPaddingGb,
                 subsystemCount: subsystemCount,
                 resourceErrors: resourceErrors,
                 extraWarnings: extraWarnings
@@ -728,6 +789,13 @@
         let warnings = [];
         warnings.push(`🧩 Топология: 1 СУБД + 1 балансировщик + ${appCount} сервер(ов) приложений (${userCount} польз. / ${USERS_PER_APP_SERVER} = ${appCount}).`);
 
+        for (let tier of config.scaling.userTiers) {
+            if (userCount >= tier.min && (tier.max === null || userCount <= tier.max)) {
+                let msg = `Пользователей всего ${userCount} (диапазон ${tier.min}-${tier.max || '∞'}). К СУБД применяется: RAM ×${tier.ramMultiplier}, +${tier.extraCores} ядра CPU.${tier.targetFreq ? ` Частота до ${tier.targetFreq} ГГц.` : ''}`;
+                warnings.push(`👥 ${msg}`);
+                break;
+            }
+        }
         if (docsMillion > config.scaling.baseDocsMillion) {
             warnings.push(`📚 Объём документов ${docsMillion} млн (>${config.scaling.baseDocsMillion} млн). Автоматически добавлено +${extraRamByDocs} ГБ ОЗУ к минимальным требованиям СУБД и серверов приложений (правило: +4 ГБ на каждые 3 млн док. сверх базового объёма).`);
         }
@@ -758,7 +826,6 @@
             globalStatusHtml = `<div class="global-status ok">✅ Установка соответствует техническим требованиям.</div>`;
         }
 
-        // Отображение результатов
         const resultsContainer = document.getElementById('serverResultsContainer');
         resultsContainer.innerHTML = '';
 
@@ -823,9 +890,17 @@
             const diskLabelRow = res.server.disk_type === 'data'
                 ? 'Диск «Данные» (HDD, свободно)'
                 : 'Диск «Приложения» (HDD, свободно)';
-            const recDiskText = res.server.disk_type === 'data'
-                ? `${res.diskRecommended} ГБ (SSD/NVMe, RAID обязателен)`
-                : `${res.diskRecommended} ГБ (реком. SSD)`;
+
+            // Текст рекомендации с учётом запаса
+            let recDiskText;
+            if (res.server.disk_type === 'data') {
+                recDiskText = `${res.diskRecommended} ГБ (SSD/NVMe, RAID обязателен)`;
+            } else {
+                recDiskText = `${res.diskRecommended} ГБ (реком. SSD)`;
+            }
+            if (res.diskPaddingEnabled && res.diskPaddingGb > 0) {
+                recDiskText += ` · запас +${res.diskPaddingGb} ГБ`;
+            }
 
             const table = document.createElement('table');
             table.className = 'result-table';
@@ -926,7 +1001,8 @@
             detailsBlock.style.display = 'block';
             let html = '';
             selectedWithWarnings.forEach(sub => {
-                html += `<div class="subsystem-detail-group"><strong>📌 ${sub.name}</strong><ul>${sub.extraWarnings.map(w => `<li>${w}</li>`).join('')}</ul></div>`;
+                const badge = sub.required ? ' ⭐' : '';
+                html += `<div class="subsystem-detail-group"><strong>📌 ${sub.name}${badge}</strong><ul>${sub.extraWarnings.map(w => `<li>${w}</li>`).join('')}</ul></div>`;
             });
             detailsContent.innerHTML = html;
             detailsContent.classList.remove('show');
@@ -938,10 +1014,11 @@
 
         document.getElementById('scalingNote').innerHTML = `<strong>📐 Примечания по расчёту:</strong><br>
             • <strong>Топология:</strong> 1 СУБД + 1 балансировщик + ${appCount} сервер(ов) приложений (по правилу «${USERS_PER_APP_SERVER} польз. на 1 сервер»).<br>
-            • <strong>🗄️ Сервер СУБД:</strong> 4 ядра / 16 ГБ ОЗУ / HDD «Данные» 1650 ГБ. Только СУБД — подсистемы не устанавливаются. Масштабируется <em>только по объёму документов</em> (число пользователей на RAM/CPU СУБД не влияет).<br>
+            • <strong>🗄️ Сервер СУБД:</strong> 4 ядра / 16 ГБ ОЗУ / HDD «Данные» 1650 ГБ. Только СУБД — подсистемы не устанавливаются. Масштабируется по объёму документов и общему числу пользователей.<br>
             • <strong>⚖️ Балансировщик:</strong> 2 ядра / 4 ГБ ОЗУ / HDD «Приложения» 10 ГБ. Только авторизация и балансировка — подсистемы не устанавливаются. Ресурсы фиксированные, не зависят от пользователей/документов/подсистем.<br>
             • <strong>🖥️ Серверы приложений:</strong> 4 ядра / 16 ГБ ОЗУ / HDD «Приложения» 80 ГБ. Разворачиваются все выбранные подсистемы. Требования «тяжёлых» подсистем могут повысить эти значения (берётся максимум).<br>
-            • <strong>Диск:</strong> базовые объёмы указаны как HDD. Для продуктивной нагрузки рекомендуется SSD/NVMe (особенно под тома БД), RAID для СУБД.<br>
+            • <strong>⭐ Обязательные подсистемы:</strong> «Мониторинг системы» и «Управление НСИ» устанавливаются автоматически и не могут быть отключены.<br>
+            • <strong>💾 Запас диска</strong> задаётся отдельно для каждого сервера (галочка «+ запас диска» в карточке сервера).<br>
             • Формула диска и RAM учитывает документы только <em>сверх</em> базовых ${config.scaling.baseDocsMillion} млн — до этого объёма они входят в базовый запас.<br>
             • Все выбранные подсистемы работают на каждом сервере приложений (балансировщик может направить пользователя на любой сервер).<br>
             • Для корректной работы обязательно соблюдать настройки энергопотребления (BIOS/ОС) и при виртуализации размещать БД локально.`;
@@ -1104,7 +1181,8 @@
     function renderSubsystemsTab() {
         let html = `<div class="admin-form-group"><button id="addSubsystemBtn" class="btn-small">+ Добавить подсистему</button></div><div id="subsystemsList">`;
         config.subsystems.forEach((sub, idx) => {
-            html += `<div class="admin-form-group" data-subsys-index="${idx}" style="border:1px solid #e2e8f0; padding:0.8rem; margin-bottom:0.8rem; border-radius:16px;"><strong>${sub.name}</strong><div><label>Идентификатор подсистемы (ID)</label><input type="text" class="subsys-id" value="${sub.id}"></div><div><label>Название</label><input type="text" class="subsys-name" value="${sub.name}"></div><div><label>Требования (ОЗУ, CPU ядра, CPU частота)</label><input type="text" class="subsys-reqs" value="${sub.requirements.server.ram_gb}, ${sub.requirements.server.cpu_cores}, ${sub.requirements.server.cpu_freq_ghz}"><span class="helper-text">Формат: число, число, число (например: 16, 4, 2.7)</span></div><div><label>Дополнительные требования к подсистеме</label><textarea class="subsys-warnings" rows="3">${sub.extraWarnings.join('\n')}</textarea><span class="helper-text">Формат: каждое требование с новой строки</span></div><button class="btn-small btn-danger delete-subsystem" data-idx="${idx}">Удалить</button></div>`;
+            const requiredNote = sub.required ? ' <span style="color:#1d4ed8; font-weight:700;">(обязательная)</span>' : '';
+            html += `<div class="admin-form-group" data-subsys-index="${idx}" style="border:1px solid #e2e8f0; padding:0.8rem; margin-bottom:0.8rem; border-radius:16px;"><strong>${sub.name}</strong>${requiredNote}<div><label>Идентификатор подсистемы (ID)</label><input type="text" class="subsys-id" value="${sub.id}" ${sub.required ? 'readonly' : ''}></div><div><label>Название</label><input type="text" class="subsys-name" value="${sub.name}"></div><div><label>Требования (ОЗУ, CPU ядра, CPU частота)</label><input type="text" class="subsys-reqs" value="${sub.requirements.server.ram_gb}, ${sub.requirements.server.cpu_cores}, ${sub.requirements.server.cpu_freq_ghz}"><span class="helper-text">Формат: число, число, число (например: 16, 4, 2.7)</span></div><div><label>Дополнительные требования к подсистеме</label><textarea class="subsys-warnings" rows="3">${sub.extraWarnings.join('\n')}</textarea><span class="helper-text">Формат: каждое требование с новой строки</span></div>${sub.required ? '<span class="helper-text" style="color:#1d4ed8;">⭐ Обязательная подсистема — не может быть удалена</span>' : `<button class="btn-small btn-danger delete-subsystem" data-idx="${idx}">Удалить</button>`}</div>`;
         });
         html += `</div>`;
         return html;
@@ -1118,13 +1196,13 @@
         <div class="admin-form-group config-block"><label>Множитель ОЗУ</label><input type="number" step="0.01" id="subsysRamMult" value="${s.subsystemRamMultiplier}"><span class="helper-text">Пример: 1.15 = увеличение на 15%</span></div>
         <div class="admin-form-group config-block"><label>Множитель диска</label><input type="number" step="0.01" id="subsysDiskMult" value="${s.subsystemDiskMultiplier}"><span class="helper-text">Пример: 1.10 = увеличение на 10%</span></div>
         <h4>Градация нагрузки по пользователям</h4>
-        <div class="note">ℹ️ Градации пользователей применяются <strong>только к серверам приложений</strong>. Поскольку каждый сервер приложений обслуживает не более ${USERS_PER_APP_SERVER} пользователей, дефолтные диапазоны (от 301) <strong>не срабатывают</strong> — при необходимости добавьте диапазон с нижней границей ≤ 300. На СУБД и балансировщик градации не влияют.</div>
+        <div class="note">ℹ️ Градации применяются к <strong>серверу СУБД</strong> (по общему числу пользователей) и к <strong>серверам приложений</strong> (по числу пользователей на сервер, лимит ${USERS_PER_APP_SERVER}). Балансировщик имеет фиксированные ресурсы.</div>
         <div id="tiersContainer">${s.userTiers.map((t,i)=>`<div class="config-block" data-tier-index="${i}" style="position:relative;"><button class="btn-small btn-danger remove-tier" style="position:absolute; top:0.5rem; right:0.5rem;">Удалить диапазон</button><div><label>Нижняя граница количества пользователей (вкл.)</label><input type="number" class="tier-min" value="${t.min}"></div><div><label>Верхняя граница количества пользователей (вкл., если значение не указано - ∞)</label><input type="number" class="tier-max" value="${t.max===null?'':t.max}"></div><div><label>Множитель ОЗУ</label><input type="number" step="0.1" class="tier-ram-mult" value="${t.ramMultiplier}"></div><div><label>Добавляемых ядер CPU</label><input type="number" class="tier-cores" value="${t.extraCores}"></div><div><label>Рекомендуемая частота (ГГц)</label><input type="number" step="0.1" class="tier-freq" value="${t.targetFreq===null?'':t.targetFreq}"></div></div>`).join('')}</div>
         <button id="addTierBtn" class="btn-small">+ Добавить диапазон</button>
         <h4>Формула дискового пространства (применяется к документам сверх базовых)</h4>
         <div id="diskRangesContainer">${s.diskFormula.ranges.map((r,i)=>`<div class="config-block" data-range-index="${i}" style="position:relative;"><button class="btn-small btn-danger remove-range" style="position:absolute; top:0.5rem; right:0.5rem;">Удалить диапазон</button><div><label>Верхняя граница количества документов (если значение не указано - ∞)</label><input type="number" class="range-max" value="${r.max===null?'':r.max}"></div><div><label>Количество затрачиваемых ресурсов на единицу (ГБ/млн)</label><input type="number" step="0.1" class="range-coeff" value="${r.coeff}"></div><div><label>Фиксированный запас внутри диапазона (ГБ)</label><input type="number" class="range-extra" value="${r.extra}"></div></div>`).join('')}</div>
         <button id="addRangeBtn" class="btn-small">+ Добавить диапазон</button>
-        <div class="admin-form-group config-block"><label>Рекомендуемый диск: дополнительно к минимальному объёму (ГБ)</label><input type="number" id="diskPadding" value="${s.diskRecommendedPadding}"><span class="helper-text">Дополнительно рекомендованный объём диска. Не входит в расчёт минимальных требований.</span></div>
+        <div class="admin-form-group config-block"><label>Рекомендуемый диск по умолчанию (для новых серверов, ГБ)</label><input type="number" id="diskPadding" value="${s.diskRecommendedPadding}"><span class="helper-text">Используется как дефолт при создании сервера. Итоговый запас задаётся отдельно у каждого сервера в карточке.</span></div>
         <h4>Режим «Только Справочная система»</h4>
         <div class="admin-form-group config-block"><label>ОЗУ (ГБ)</label><input type="number" id="refRam" value="${s.referenceModeFactor.ram_gb}"></div>
         <div class="admin-form-group config-block"><label>CPU (ядер)</label><input type="number" id="refCores" value="${s.referenceModeFactor.cpu_cores}"></div>
@@ -1220,7 +1298,10 @@
                 let reqs = div.querySelector('.subsys-reqs').value.split(',').map(s=>parseFloat(s.trim()));
                 let ram = reqs[0], cores = reqs[1], freq = reqs[2];
                 let warnings = div.querySelector('.subsys-warnings').value.split('\n').filter(l=>l.trim().length);
-                newSubsystems.push({ id, name, requirements: { server: { ram_gb: ram, cpu_cores: cores, cpu_freq_ghz: freq } }, extraWarnings: warnings });
+                const oldSub = config.subsystems.find(s => s.id === id) || {};
+                const newSub = { id, name, requirements: { server: { ram_gb: ram, cpu_cores: cores, cpu_freq_ghz: freq } }, extraWarnings: warnings };
+                if (oldSub.required) newSub.required = true;
+                newSubsystems.push(newSub);
             });
             config.subsystems = newSubsystems;
         }
