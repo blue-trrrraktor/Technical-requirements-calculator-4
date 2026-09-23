@@ -144,8 +144,10 @@
         <h2>🖧 Серверы (топология)</h2>
         <div class="note" style="margin-bottom:1rem;">
             📐 Состав серверов формируется автоматически по правилу:<br>
-            • <strong>1 сервер СУБД</strong> · <strong>1 сервер-балансировщик</strong> · <strong>N серверов приложений</strong>, где <em>N = ⌈пользователи / 300⌉</em>.<br>
-            Вы можете скорректировать <strong>аппаратные характеристики</strong> любого сервера — они сохраняются при изменении количества пользователей.
+            • <strong>1 сервер СУБД</strong> (4 ядра / 16 ГБ / HDD «Данные» 1650 ГБ) — только СУБД.<br>
+            • <strong>1 сервер-балансировщик</strong> (2 ядра / 4 ГБ / HDD «Приложения» 10 ГБ) — только ПО авторизации и балансировки.<br>
+            • <strong>N серверов приложений</strong> (4 ядра / 16 ГБ / HDD «Приложения» 80 ГБ), где <em>N = ⌈пользователи / 300⌉</em> — на них разворачиваются подсистемы.<br>
+            Характеристики можно скорректировать — они сохраняются при изменении количества пользователей.
         </div>
         <div id="serversContainer">
             <div class="servers-list" id="serversList"></div>
@@ -155,7 +157,7 @@
     <div class="card">
         <h2>🔌 Подключаемые подсистемы и модули</h2>
         <div class="subsystems-list" id="subsystemsContainer"></div>
-        <div class="note">💡 <strong>Правило:</strong> если подсистема требует больше ресурсов, чем Платформа — итоговые требования повышаются.<br>
+        <div class="note">💡 <strong>Правило:</strong> если подсистема требует больше ресурсов, чем Платформа — итоговые требования повышаются (берётся максимум).<br>
         🔀 <strong>Топология:</strong> все выбранные подсистемы работают на <em>каждом</em> сервере приложений (балансировщик может направить любого пользователя на любой сервер).<br>
         📋 <strong>Детали:</strong> специфические требования выбранных подсистем отображаются в отдельном сворачиваемом блоке после расчета.</div>
     </div>
@@ -221,8 +223,15 @@
     let config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
     let selectedSubsystems = new Set();
 
-    // ---------- ТОПОЛОГИЯ СЕРВЕРОВ (НОВАЯ ЛОГИКА) ----------
+    // ---------- ТОПОЛОГИЯ СЕРВЕРОВ ----------
     const USERS_PER_APP_SERVER = 300;
+
+    // Фиксированные спеки по ролям (из ТЗ)
+    const ROLE_SPECS = {
+        db:       { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_gb:1650, disk_type:'data', network_gbit:10 },
+        balancer: { cpu_cores:2, cpu_freq_ghz:2.7, ram_gb:4,  disk_gb:10,   disk_type:'apps', network_gbit:10 },
+        app:      { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_gb:80,   disk_type:'apps', network_gbit:1 }
+    };
 
     function getRequiredAppServerCount() {
         const users = parseInt(document.getElementById('userCount')?.value, 10) || 0;
@@ -230,36 +239,36 @@
     }
 
     function makeDefaultServer(name, role, index) {
-        if (role === 'db') {
-            return { name, role, index: 0, type:'physical', os:'linux_astra', cpu_cores:8, cpu_freq_ghz:2.7, ram_gb:32, disk_gb:500, network_gbit:10 };
-        }
-        if (role === 'balancer') {
-            return { name, role, index: 0, type:'physical', os:'linux_astra', cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:8, disk_gb:60, network_gbit:10 };
-        }
-        // app
-        return { name, role, index, type:'physical', os:'win2019', cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_gb:100, network_gbit:1 };
+        const spec = ROLE_SPECS[role] || ROLE_SPECS.app;
+        const os = role === 'db' || role === 'balancer' ? 'linux_astra' : 'win2019';
+        return {
+            name, role, index,
+            type: 'physical',
+            os,
+            cpu_cores: spec.cpu_cores,
+            cpu_freq_ghz: spec.cpu_freq_ghz,
+            ram_gb: spec.ram_gb,
+            disk_gb: spec.disk_gb,
+            disk_type: spec.disk_type,
+            network_gbit: spec.network_gbit
+        };
     }
 
     function ensureServerTopology() {
         const appCount = getRequiredAppServerCount();
         const existing = Array.isArray(config.servers) ? config.servers : [];
-
         const result = [];
 
         // 1. СУБД
         let db = existing.find(s => s.role === 'db');
         if (!db) db = makeDefaultServer('Сервер СУБД', 'db');
-        db.name = 'Сервер СУБД';
-        db.role = 'db';
-        db.index = 0;
+        db.name = 'Сервер СУБД'; db.role = 'db'; db.index = 0; db.disk_type = 'data';
         result.push(db);
 
         // 2. Балансировщик
         let bal = existing.find(s => s.role === 'balancer');
         if (!bal) bal = makeDefaultServer('Сервер-балансировщик', 'balancer');
-        bal.name = 'Сервер-балансировщик';
-        bal.role = 'balancer';
-        bal.index = 0;
+        bal.name = 'Сервер-балансировщик'; bal.role = 'balancer'; bal.index = 0; bal.disk_type = 'apps';
         result.push(bal);
 
         // 3. Серверы приложений
@@ -267,14 +276,13 @@
             let app = existing.find(s => s.role === 'app' && s.index === i);
             if (!app) app = makeDefaultServer(`Сервер приложений ${i}`, 'app', i);
             app.name = `Сервер приложений ${i}`;
-            app.role = 'app';
-            app.index = i;
+            app.role = 'app'; app.index = i; app.disk_type = 'apps';
             result.push(app);
         }
 
         config.servers = result;
         config.selectedDbServer = db.name;
-        config.selectedPlatformServer = ''; // платформа теперь распределена по всем серверам приложений
+        config.selectedPlatformServer = '';
     }
 
     function getServers() { return config.servers || []; }
@@ -313,7 +321,7 @@
         const usersPerApp = Math.ceil(users / appCount);
         el.innerHTML = `
             <strong>🧩 Топология многосерверной установки (автоматически):</strong><br>
-            • <strong>Сервер СУБД</strong> — 1 шт. (хранение данных)<br>
+            • <strong>Сервер СУБД</strong> — 1 шт. (хранение данных, только СУБД)<br>
             • <strong>Сервер-балансировщик</strong> — 1 шт. (распределяет пользователей между серверами приложений)<br>
             • <strong>Серверы приложений</strong> — <strong>${appCount}</strong> шт.&nbsp;
             <span class="user-math">⌈ ${users} / 300 ⌉ = ${appCount}</span>&nbsp;
@@ -345,6 +353,7 @@
         ];
         servers.forEach((s) => {
             const osSelected = s.os || 'win2019';
+            const diskLabel = s.disk_type === 'data' ? '«Данные»' : '«Приложения»';
             html += `<div class="server-item" data-server="${s.name}">
                         <div class="server-header">
                             <strong>
@@ -365,7 +374,7 @@
                             <label>CPU ядер: <input type="number" step="1" class="server-cpu-cores" value="${s.cpu_cores}" style="width:60px;"></label>
                             <label>Частота (ГГц): <input type="number" step="0.1" class="server-cpu-freq" value="${s.cpu_freq_ghz}" style="width:60px;"></label>
                             <label>ОЗУ (ГБ): <input type="number" step="1" class="server-ram" value="${s.ram_gb}" style="width:60px;"></label>
-                            <label>Диск (ГБ): <input type="number" step="1" class="server-disk" value="${s.disk_gb}" style="width:60px;"></label>
+                            <label>Диск ${diskLabel} (ГБ, HDD): <input type="number" step="1" class="server-disk" value="${s.disk_gb}" style="width:70px;"></label>
                             <label>Сеть (Гбит/с): <input type="number" step="0.1" class="server-network" value="${s.network_gbit}" style="width:60px;"></label>
                             <button class="btn-small update-server" data-name="${s.name}">Сохранить настройки</button>
                         </div>
@@ -470,16 +479,21 @@
     }
 
     function migrateConfig() {
-        // Миграция старых конфигов: если серверы без role — сбрасываем топологию
+        // Если серверы без role — сбрасываем топологию (старый формат)
         if (Array.isArray(config.servers) && config.servers.length > 0) {
             const hasRoles = config.servers.some(s => s && s.role);
-            if (!hasRoles) {
-                config.servers = [];
-            }
+            if (!hasRoles) config.servers = [];
         } else {
             config.servers = [];
         }
-        // Per-server назначения подсистем больше не используются
+        // Восстанавливаем disk_type, если отсутствует (для совместимости)
+        if (Array.isArray(config.servers)) {
+            config.servers.forEach(s => {
+                if (!s.disk_type) {
+                    s.disk_type = (s.role === 'db') ? 'data' : 'apps';
+                }
+            });
+        }
         config.subsystemAssignments = {};
     }
 
@@ -490,9 +504,6 @@
         }
         migrateConfig();
         selectedSubsystems.clear();
-        // Восстанавливаем выбор подсистем: если подсистема была в старых assignments — считаем выбранной
-        // (для обратной совместимости старых сохранений)
-        // По умолчанию ничего не выбрано.
         applyConfigToUI();
     }
 
@@ -523,15 +534,20 @@
         return result;
     }
 
+    // Диск масштабируется только по документам СВЕРХ базового объёма (baseDocsMillion).
+    // Это согласуется с формулой RAM. Документы до 3 млн учтены в базовом диске.
     function calcDiskSpace(baseDiskGb, docsMillion) {
+        const baseDocs = config.scaling.baseDocsMillion || 0;
+        const excess = Math.max(0, docsMillion - baseDocs);
+        if (excess <= 0) return Math.ceil(baseDiskGb);
         const ranges = config.scaling.diskFormula.ranges;
         let additional = 0, prevMax = 0;
         for (let r of ranges) {
             if (r.max === null) {
-                if (docsMillion > prevMax) additional += (docsMillion - prevMax) * r.coeff + (r.extra || 0);
+                if (excess > prevMax) additional += (excess - prevMax) * r.coeff + (r.extra || 0);
                 break;
-            } else if (docsMillion > prevMax) {
-                let part = Math.min(docsMillion, r.max) - prevMax;
+            } else if (excess > prevMax) {
+                let part = Math.min(excess, r.max) - prevMax;
                 additional += part * r.coeff;
                 prevMax = r.max;
             } else break;
@@ -607,33 +623,35 @@
             const isDb = server.role === 'db';
             const isBalancer = server.role === 'balancer';
 
-            // Назначение подсистем и количество пользователей, приходящееся на сервер
-            let assignedSubs = [];
-            let effectiveUsers = userCount;
-            if (isApp) {
-                assignedSubs = allSelectedSubs;
-                effectiveUsers = usersPerApp;
-            }
+            // Подсистемы разворачиваются ТОЛЬКО на серверах приложений
+            let assignedSubs = isApp ? allSelectedSubs : [];
+            // Пользователей на сервер: приложения — usersPerApp, остальные — все пользователи (для масштабирования RAM СУБД)
+            let effectiveUsers = isApp ? usersPerApp : userCount;
 
-            // Базовые требования для роли
-            let roleBase = { ...baseServer };
-            if (isBalancer) {
+            // Базовые требования для роли (фиксированные спеки из ТЗ)
+            let roleBase;
+            if (isDb) {
+                // СУБД: 4 ядра / 16 ГБ / HDD «Данные» 1650 ГБ
+                roleBase = { cpu_cores:4, cpu_freq_ghz:2.7, ram_gb:16, disk_free_gb_base:1650, network_gbit:1 };
+            } else if (isBalancer) {
+                // Балансировщик: 2 ядра / 4 ГБ / HDD «Приложения» 10 ГБ
+                roleBase = { cpu_cores:2, cpu_freq_ghz:2.7, ram_gb:4, disk_free_gb_base:10, network_gbit:1 };
+            } else {
+                // Сервер приложений: 4 ядра / 16 ГБ / HDD «Приложения» 80 ГБ
+                // Подсистемы могут повысить требования (aggregateServerReqs берёт максимум).
                 roleBase = {
-                    ...baseServer,
-                    cpu_cores: Math.max(2, Math.min(baseServer.cpu_cores, 4)),
-                    ram_gb: Math.max(4, Math.ceil(baseServer.ram_gb / 2)),
-                    disk_free_gb_base: 50,
+                    cpu_cores: Math.max(baseServer.cpu_cores || 0, 4),
+                    cpu_freq_ghz: Math.max(baseServer.cpu_freq_ghz || 0, 2.7),
+                    ram_gb: Math.max(baseServer.ram_gb || 0, 16),
+                    disk_free_gb_base: 80,
                     network_gbit: 1
-                };
-            } else if (isDb) {
-                roleBase = {
-                    ...baseServer,
-                    disk_free_gb_base: Math.max(baseServer.disk_free_gb_base || 50, 200)
                 };
             }
 
             let serverReqs = aggregateServerReqs(roleBase, assignedSubs.map(s => s.id));
-            let finalRamMin = serverReqs.ram_gb + extraRamByDocs;
+            // Документы влияют на RAM СУБД и серверов приложений, но не на балансировщик
+            let serverExtraRamByDocs = isBalancer ? 0 : extraRamByDocs;
+            let finalRamMin = serverReqs.ram_gb + serverExtraRamByDocs;
 
             let subsystemCount = assignedSubs.length;
             let subRamMult = 1, subDiskMult = 1;
@@ -642,9 +660,18 @@
                 subDiskMult = config.scaling.subsystemDiskMultiplier;
             }
             finalRamMin = Math.ceil(finalRamMin * subRamMult);
-            let diskMin = Math.ceil(calcDiskSpace(serverReqs.disk_free_gb_base || baseServer.disk_free_gb_base, docsMillion) * subDiskMult);
+
+            let diskMin;
+            if (isBalancer) {
+                // У балансировщика фиксированный HDD «Приложения» 10 ГБ — не масштабируется
+                diskMin = roleBase.disk_free_gb_base;
+            } else {
+                diskMin = Math.ceil(calcDiskSpace(roleBase.disk_free_gb_base, docsMillion) * subDiskMult);
+            }
             const diskRecommended = diskMin + config.scaling.diskRecommendedPadding;
 
+            // Градации пользователей: на серверах приложений всегда ≤300 польз., поэтому
+            // фактически срабатывают только на СУБД (effectiveUsers = все пользователи)
             let userTier = null, ramUserMult = 1, extraCores = 0, targetFreq = null;
             for (let tier of config.scaling.userTiers) {
                 if (effectiveUsers >= tier.min && (tier.max === null || effectiveUsers <= tier.max)) {
@@ -667,14 +694,19 @@
             if (!osCheck.compatible) extraWarnings.push(`ОС: ${osCheck.message}`);
 
             if (isApp) {
-                extraWarnings.push(`Сервер приложений №${server.index} обслуживает до ${usersPerApp} пользователей (лимит: ${USERS_PER_APP_SERVER} на сервер). Всего серверов приложений: ${appCount}.`);
-                extraWarnings.push(`На сервере развёрнуты все выбранные подсистемы (${allSelectedSubs.length} шт.) — балансировщик может направить пользователя на любой сервер.`);
+                extraWarnings.push(`Сервер приложений: 4 ядра / 16 ГБ ОЗУ / HDD «Приложения» 80 ГБ. На нём развёрнуты все выбранные подсистемы (${allSelectedSubs.length} шт.).`);
+                extraWarnings.push(`Обслуживает до ${usersPerApp} пользователей (лимит: ${USERS_PER_APP_SERVER} на сервер). Всего серверов приложений: ${appCount}.`);
+                if (diskMin > 80) {
+                    extraWarnings.push(`⚠️ Требуемый объём диска (${diskMin} ГБ) превышает базовые 80 ГБ — потребуется увеличение HDD «Приложения».`);
+                }
             }
             if (isDb) {
-                extraWarnings.push(`Сервер СУБД обслуживает все ${userCount} пользователей (запросы проходят через балансировщик и серверы приложений).`);
+                extraWarnings.push(`Сервер СУБД: только СУБД, подсистемы не устанавливаются. HDD «Данные» ${roleBase.disk_free_gb_base} ГБ.`);
+                extraWarnings.push(`Обслуживает все ${userCount} пользователей (запросы идут через балансировщик и серверы приложений).`);
             }
             if (isBalancer) {
-                extraWarnings.push(`Балансировщик распределяет до ${userCount} пользователей между ${appCount} сервером(ами) приложений.`);
+                extraWarnings.push(`Балансировщик: только ПО авторизации и балансировки нагрузки (nginx/haproxy + auth-модуль). Подсистемы не устанавливаются. HDD «Приложения» ${roleBase.disk_free_gb_base} ГБ.`);
+                extraWarnings.push(`Распределяет до ${userCount} пользователей между ${appCount} сервером(ами) приложений. Ресурсы не зависят от объёма документов и подсистем.`);
             }
 
             if (server.type === 'virtual') {
@@ -699,36 +731,26 @@
             });
         }
 
-        // Глобальные предупреждения (общие)
+        // Глобальные предупреждения
         let warnings = [];
         warnings.push(`🧩 Топология: 1 СУБД + 1 балансировщик + ${appCount} сервер(ов) приложений (${userCount} польз. / ${USERS_PER_APP_SERVER} = ${appCount}).`);
 
-        // Tier info теперь для серверов приложений не срабатывает (>300 пользователей на сервер невозможно по правилу),
-        // но для СУБД — срабатывает, если всего пользователей больше порога.
+        // Информируем о срабатывании градаций пользователей (применяются к СУБД)
         for (let tier of config.scaling.userTiers) {
             if (userCount >= tier.min && (tier.max === null || userCount <= tier.max)) {
-                let msg = `Количество пользователей всего (${userCount}) в диапазоне ${tier.min}-${tier.max || '∞'}. На сервер СУБД применяется: RAM ×${tier.ramMultiplier}, +${tier.extraCores} ядра CPU.${tier.targetFreq ? ` Частота до ${tier.targetFreq} ГГц.` : ''}`;
+                let msg = `Пользователей всего ${userCount} (диапазон ${tier.min}-${tier.max || '∞'}). На сервер СУБД применяется: RAM ×${tier.ramMultiplier}, +${tier.extraCores} ядра CPU.${tier.targetFreq ? ` Частота до ${tier.targetFreq} ГГц.` : ''}`;
                 warnings.push(`👥 ${msg}`);
                 break;
             }
         }
         if (docsMillion > config.scaling.baseDocsMillion) {
-            warnings.push(`📚 Объем документов ${docsMillion} млн (>${config.scaling.baseDocsMillion} млн). Автоматически добавлено +${extraRamByDocs} ГБ ОЗУ к минимальным требованиям каждого сервера (правило: +4 ГБ на каждые 3 млн док.).`);
+            warnings.push(`📚 Объём документов ${docsMillion} млн (>${config.scaling.baseDocsMillion} млн). Автоматически добавлено +${extraRamByDocs} ГБ ОЗУ к минимальным требованиям СУБД и серверов приложений (правило: +4 ГБ на каждые 3 млн док. сверх базового объёма).`);
         }
 
         if (allSelectedSubs.some(sub => sub.id === 'soglasovanie')) {
-            let soglasovanieOnWin = false;
-            for (let sub of allSelectedSubs) {
-                if (sub.id === 'soglasovanie') {
-                    // Проверяем, есть ли среди серверов приложений хотя бы один Windows
-                    if (appServers.some(s => (s.os || 'win2019').startsWith('win'))) {
-                        soglasovanieOnWin = true;
-                        break;
-                    }
-                }
-            }
-            if (!soglasovanieOnWin) {
-                warnings.push("⚠️ Подсистема «Согласование НД» требует Windows Server (серверная часть). Среди серверов приложений нет ни одного с Windows.");
+            const hasWinAppServer = appServers.some(s => (s.os || 'win2019').startsWith('win'));
+            if (!hasWinAppServer) {
+                warnings.push("⚠️ Подсистема «Согласование НД» требует Windows Server (серверная часть). Среди серверов приложений нет ни одного с Windows — переключите ОС хотя бы одного сервера приложений на Windows Server 2012+.");
             }
         }
         if (allSelectedSubs.some(sub => sub.id === 'kassist4')) {
@@ -737,10 +759,9 @@
             }
         }
 
-        // Порог количества подсистем применяется ко всем серверам приложений одинаково
         let anyServerHasReserve = serversResults.some(r => r.subsystemCount >= config.scaling.subsystemCountThreshold);
         if (anyServerHasReserve) {
-            warnings.push(`🔧 На серверах приложений выбрано ${config.scaling.subsystemCountThreshold} и более подсистем. Применен коэффициент резервирования: RAM +${Math.round((config.scaling.subsystemRamMultiplier-1)*100)}%, диск +${Math.round((config.scaling.subsystemDiskMultiplier-1)*100)}% к минимальным требованиям.`);
+            warnings.push(`🔧 На серверах приложений выбрано ${config.scaling.subsystemCountThreshold} и более подсистем. Применён коэффициент резервирования: RAM +${Math.round((config.scaling.subsystemRamMultiplier-1)*100)}%, диск +${Math.round((config.scaling.subsystemDiskMultiplier-1)*100)}% к минимальным требованиям.`);
         }
 
         // Глобальный статус
@@ -752,7 +773,7 @@
             globalStatusHtml = `<div class="global-status ok">✅ Установка соответствует техническим требованиям.</div>`;
         }
 
-        // Отображение результатов для серверов
+        // Отображение результатов
         const resultsContainer = document.getElementById('serverResultsContainer');
         resultsContainer.innerHTML = '';
 
@@ -815,6 +836,13 @@
                 contentDiv.appendChild(ul);
             }
 
+            const diskLabelRow = res.server.disk_type === 'data'
+                ? 'Диск «Данные» (HDD, свободно)'
+                : 'Диск «Приложения» (HDD, свободно)';
+            const recDiskText = res.server.disk_type === 'data'
+                ? `${res.diskRecommended} ГБ (SSD/NVMe, RAID обязателен)`
+                : `${res.diskRecommended} ГБ (реком. SSD)`;
+
             const table = document.createElement('table');
             table.className = 'result-table';
             table.innerHTML = `<thead><tr><th>Параметр</th><th>Минимальные требования</th><th>Рекомендуемые</th></tr></thead><tbody></tbody>`;
@@ -822,7 +850,7 @@
             const rows = [
                 { param: "Процессор (ядра/частота)", minVal: `${res.minReqs.cpu_cores} ядер, ${res.minReqs.cpu_freq_ghz} ГГц`, recVal: `${res.recommended.cpu_cores} ядер, ${res.recommended.cpu_freq_ghz} ГГц` },
                 { param: "Оперативная память (RAM)", minVal: `${res.finalRamMin} ГБ`, recVal: `${res.recommended.ram_gb} ГБ` },
-                { param: "Дисковое пространство (свободно)", minVal: `${res.diskMin} ГБ (SSD обязательно)`, recVal: `${res.diskRecommended} ГБ (SSD, RAID по возможности)` },
+                { param: diskLabelRow, minVal: `${res.diskMin} ГБ (HDD)`, recVal: recDiskText },
                 { param: "Сетевой адаптер", minVal: "1 Гбит/с и выше", recVal: res.role === 'db' || res.role === 'balancer' ? "Рекомендуется 10 Гбит/с" : "Рекомендуется 10 Гбит/с при большой нагрузке" },
                 { param: "Операционная система", minVal: `64-разрядная: Windows Server 2012/2016/2019/2022/2025 или Linux (ядро 3.0+ / Астра / Альт / РЕД / Атлант)`, recVal: `—` },
                 { param: "Настройки энергопотребления", minVal: "BIOS: макс. производительность; ОС: план «Высокая производительность»", recVal: res.server.type === 'virtual' ? "Хост + гость — одинаковый план макс. производительности" : "—" }
@@ -924,12 +952,14 @@
             detailsBlock.style.display = 'none';
         }
 
-        document.getElementById('scalingNote').innerHTML = `<strong>📐 Примечания по расчету:</strong><br>
+        document.getElementById('scalingNote').innerHTML = `<strong>📐 Примечания по расчёту:</strong><br>
             • <strong>Топология:</strong> 1 СУБД + 1 балансировщик + ${appCount} сервер(ов) приложений (по правилу «${USERS_PER_APP_SERVER} польз. на 1 сервер»).<br>
-            • Базовые требования сервера приложений (минимальные): ${baseServer.cpu_cores} ядер / ${baseServer.cpu_freq_ghz} ГГц, ОЗУ ${baseServer.ram_gb} ГБ (до масштабирования).<br>
-            • Диск: минимальный свободный объем рассчитывается с учетом резервирования для каждого сервера. Рекомендуется SSD.<br>
-            • ${deployMode === 'reference' ? 'Режим "Только Справочная система" понижает базовые требования (ОЗУ 8 ГБ, 2 ядра).' : 'Полный контур СУНТД — штатные требования 16 ГБ/4 ядра.'}<br>
-            • Все выбранные подсистемы работают на каждом сервере приложений (пользователь может быть направлен балансировщиком на любой сервер).<br>
+            • <strong>🗄️ Сервер СУБД:</strong> 4 ядра / 16 ГБ ОЗУ / HDD «Данные» 1650 ГБ. Только СУБД — подсистемы не устанавливаются. Масштабируется по объёму документов и общему числу пользователей.<br>
+            • <strong>⚖️ Балансировщик:</strong> 2 ядра / 4 ГБ ОЗУ / HDD «Приложения» 10 ГБ. Только ПО авторизации и балансировки — подсистемы не устанавливаются. Ресурсы фиксированные.<br>
+            • <strong>🖥️ Серверы приложений:</strong> 4 ядра / 16 ГБ ОЗУ / HDD «Приложения» 80 ГБ. Разворачиваются все выбранные подсистемы. Требования «тяжёлых» подсистем могут повысить эти значения (берётся максимум).<br>
+            • <strong>Диск:</strong> базовые объёмы указаны как HDD. Для продуктивной нагрузки рекомендуется SSD/NVMe (особенно под тома БД), RAID для СУБД.<br>
+            • Формула диска и RAM учитывает документы только <em>сверх</em> базовых ${config.scaling.baseDocsMillion} млн — до этого объёма они входят в базовый запас.<br>
+            • Все выбранные подсистемы работают на каждом сервере приложений (балансировщик может направить пользователя на любой сервер).<br>
             • Для корректной работы обязательно соблюдать настройки энергопотребления (BIOS/ОС) и при виртуализации размещать БД локально.`;
 
         document.getElementById('resultPanel').style.display = 'block';
@@ -1099,19 +1129,19 @@
 
     function renderScalingTab() {
         const s = config.scaling;
-        return `<div class="static-highlight"><strong>Глобальные правила </strong><br><div class="admin-form-group"><label>Базовый объем документов (млн)</label><input type="number" id="baseDocs" value="${s.baseDocsMillion}" readonly class="readonly-field"><span class="helper-text">До этого количества документов дополнительно ОЗУ не добавляется</span></div><div class="admin-form-group"><label>Дополнительно ОЗУ на каждые 3 млн (ГБ)</label><input type="number" id="ramPerExtra" value="${s.ramPerExtra3MillionGB}" readonly class="readonly-field"><span class="helper-text">Сколько гигабайт ОЗУ добавляется за каждые 3 млн документов сверх базового уровня</span></div></div>
+        return `<div class="static-highlight"><strong>Глобальные правила </strong><br><div class="admin-form-group"><label>Базовый объем документов (млн)</label><input type="number" id="baseDocs" value="${s.baseDocsMillion}" readonly class="readonly-field"><span class="helper-text">До этого количества документов дополнительно ОЗУ и диск не добавляются</span></div><div class="admin-form-group"><label>Дополнительно ОЗУ на каждые 3 млн (ГБ)</label><input type="number" id="ramPerExtra" value="${s.ramPerExtra3MillionGB}" readonly class="readonly-field"><span class="helper-text">Сколько гигабайт ОЗУ добавляется за каждые 3 млн документов сверх базового уровня</span></div></div>
         <h4>Коэффициент резервирования при большом количестве подсистем</h4>
-        <div class="admin-form-group config-block"><label>Порог количества подсистем</label><input type="number" id="subsysThresh" value="${s.subsystemCountThreshold}"><span class="helper-text">Если выбрано столько или больше подсистем, применяются множители. Пример: если выбрано 5 подсистем, то при достижении этого количества подсистем рекомендуется использовать дополнительные ресурсы памяти</span></div>
+        <div class="admin-form-group config-block"><label>Порог количества подсистем</label><input type="number" id="subsysThresh" value="${s.subsystemCountThreshold}"><span class="helper-text">Если выбрано столько или больше подсистем, применяются множители</span></div>
         <div class="admin-form-group config-block"><label>Множитель ОЗУ</label><input type="number" step="0.01" id="subsysRamMult" value="${s.subsystemRamMultiplier}"><span class="helper-text">Пример: 1.15 = увеличение на 15%</span></div>
         <div class="admin-form-group config-block"><label>Множитель диска</label><input type="number" step="0.01" id="subsysDiskMult" value="${s.subsystemDiskMultiplier}"><span class="helper-text">Пример: 1.10 = увеличение на 10%</span></div>
         <h4>Градация нагрузки по пользователям</h4>
-        <div class="note">ℹ️ В новой топологии каждый сервер приложений обслуживает не более ${USERS_PER_APP_SERVER} пользователей, поэтому градации «301+» влияют только на сервер СУБД (общее количество пользователей).</div>
+        <div class="note">ℹ️ В текущей топологии каждый сервер приложений обслуживает не более ${USERS_PER_APP_SERVER} пользователей, поэтому градации «301+» влияют только на сервер СУБД (общее число пользователей).</div>
         <div id="tiersContainer">${s.userTiers.map((t,i)=>`<div class="config-block" data-tier-index="${i}" style="position:relative;"><button class="btn-small btn-danger remove-tier" style="position:absolute; top:0.5rem; right:0.5rem;">Удалить диапазон</button><div><label>Нижняя граница количества пользователей (вкл.)</label><input type="number" class="tier-min" value="${t.min}"></div><div><label>Верхняя граница количества пользователей (вкл., если значение не указано - ∞)</label><input type="number" class="tier-max" value="${t.max===null?'':t.max}"></div><div><label>Множитель ОЗУ</label><input type="number" step="0.1" class="tier-ram-mult" value="${t.ramMultiplier}"></div><div><label>Добавляемых ядер CPU</label><input type="number" class="tier-cores" value="${t.extraCores}"></div><div><label>Рекомендуемая частота (ГГц)</label><input type="number" step="0.1" class="tier-freq" value="${t.targetFreq===null?'':t.targetFreq}"></div></div>`).join('')}</div>
         <button id="addTierBtn" class="btn-small">+ Добавить диапазон</button>
-        <h4>Формула дискового пространства</h4>
+        <h4>Формула дискового пространства (применяется к документам сверх базовых)</h4>
         <div id="diskRangesContainer">${s.diskFormula.ranges.map((r,i)=>`<div class="config-block" data-range-index="${i}" style="position:relative;"><button class="btn-small btn-danger remove-range" style="position:absolute; top:0.5rem; right:0.5rem;">Удалить диапазон</button><div><label>Верхняя граница количества документов (если значение не указано - ∞)</label><input type="number" class="range-max" value="${r.max===null?'':r.max}"></div><div><label>Количество затрачиваемых ресурсов на единицу (ГБ/млн)</label><input type="number" step="0.1" class="range-coeff" value="${r.coeff}"></div><div><label>Фиксированный запас внутри диапазона (ГБ)</label><input type="number" class="range-extra" value="${r.extra}"></div></div>`).join('')}</div>
         <button id="addRangeBtn" class="btn-small">+ Добавить диапазон</button>
-        <div class="admin-form-group config-block"><label>Рекомендуемый диск: дополнительно к минимальному объему памяти (ГБ)</label><input type="number" id="diskPadding" value="${s.diskRecommendedPadding}"><span class="helper-text">Дополнительно рекомендованный объем памяти диска. Не входит в расчет минимальных требований. Пример: 30</span></div>
+        <div class="admin-form-group config-block"><label>Рекомендуемый диск: дополнительно к минимальному объёму (ГБ)</label><input type="number" id="diskPadding" value="${s.diskRecommendedPadding}"><span class="helper-text">Дополнительно рекомендованный объём диска. Не входит в расчёт минимальных требований.</span></div>
         <h4>Режим «Только Справочная система»</h4>
         <div class="admin-form-group config-block"><label>ОЗУ (ГБ)</label><input type="number" id="refRam" value="${s.referenceModeFactor.ram_gb}"></div>
         <div class="admin-form-group config-block"><label>CPU (ядер)</label><input type="number" id="refCores" value="${s.referenceModeFactor.cpu_cores}"></div>
